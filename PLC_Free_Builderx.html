@@ -1,0 +1,806 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PLC Trainer Free Build</title>
+<style>
+:root{
+  --bg:#ffffff; --fg:#0c0d0f; --line:#0c0d0f; --tint:#eaf3ee; --power:#0b8a3e; --sel:#1a56db;
+  --warn:#8a4b00; --fail:#c21c2b;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace; --sans:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0a0c0e; --fg:#ffffff; --line:#ffffff; --tint:#14241b; --power:#3fe286; --sel:#8cc2ff; --warn:#ffc65c; --fail:#ff7a7a; color-scheme:dark } }
+:root[data-theme="dark"]{ --bg:#0a0c0e; --fg:#ffffff; --line:#ffffff; --tint:#14241b; --power:#3fe286; --sel:#8cc2ff; --warn:#ffc65c; --fail:#ff7a7a; color-scheme:dark }
+:root[data-theme="light"]{ color-scheme:light }
+*{box-sizing:border-box}
+html{color-scheme:light}
+body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.45 var(--sans);padding-block:16px 40px;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+[hidden]{display:none!important}
+h1{font-size:22px;margin:0;font-weight:700;letter-spacing:-.01em}
+h2{font-size:15px;margin:0 0 8px;font-weight:700}
+h3{font-size:12px;margin:0 0 6px;text-transform:uppercase;letter-spacing:.08em}
+p{margin:0 0 8px}
+.top{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;margin-bottom:10px}
+.top .sub{font-size:13px;margin:2px 0 0;max-width:62ch}
+.bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.bar.r{margin-left:auto}
+.bar .sep{width:1.5px;align-self:stretch;background:var(--line);margin:0 4px}
+button,select,input,textarea{font:inherit;color:var(--fg)}
+button{background:var(--bg);border:1.5px solid var(--line);border-radius:5px;padding:6px 10px;cursor:pointer;font-weight:600}
+button:hover{background:var(--tint)}
+button[aria-pressed="true"],button.primary{background:var(--fg);color:var(--bg)}
+:focus-visible{outline:2px solid var(--sel);outline-offset:2px}
+select,input[type=text],input[type=number]{background:var(--bg);border:1.5px solid var(--line);border-radius:5px;padding:5px 8px;max-width:100%}
+.app{display:grid;grid-template-columns:minmax(300px,350px) minmax(0,1fr) minmax(230px,270px);grid-template-areas:"in main out";gap:16px;align-items:start}
+#side-in{grid-area:in}#main{grid-area:main}#p-out{grid-area:out}
+.side{display:flex;flex-direction:column;gap:16px;min-width:0}
+@media (min-width:1201px){#side-in,#p-out{position:sticky;top:10px;max-height:calc(100vh - 20px);overflow-y:auto;align-self:start}}
+#pal2{margin-bottom:0}
+@media (max-width:1200px){.app{grid-template-columns:minmax(300px,350px) minmax(0,1fr);grid-template-areas:"in main" "out main"}}
+@media (max-width:900px){.app{grid-template-columns:minmax(0,1fr);grid-template-areas:"in" "main" "out"}.bar.r{margin-left:0}}
+.col{display:flex;flex-direction:column;gap:16px;min-width:0}
+.panel{border:1.5px solid var(--line);border-radius:8px;padding:12px;min-width:0}
+.scan{font:12px var(--mono);font-variant-numeric:tabular-nums}
+.hint{font-size:12.5px;margin:0 0 8px}
+/* I/O */
+.iorow{display:flex;align-items:center;gap:8px;margin-bottom:6px;min-width:0}
+.pb{width:50px;height:34px;padding:0;flex:none;font-size:11px;border-radius:17px}
+.pb.act{background:var(--power);border-color:var(--power);color:var(--bg)}
+.lamp{width:30px;height:30px;margin:0 10px 0 6px;border-radius:50%;border:2.5px solid var(--line);flex:none}
+.lamp.on{background:#ffd400;border-color:var(--line);box-shadow:0 0 0 3px rgba(255,212,0,.45),0 0 14px 3px rgba(255,212,0,.8)}
+.nmw{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.nmin{font:600 12px var(--mono);width:100%;padding:3px 6px}
+.ad{font:10.5px var(--mono);display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.ad select{font:10.5px var(--mono);padding:1px 3px;border-width:1px}
+.st{font:600 11px var(--mono);flex:none;width:44px;text-align:right}
+/* palette */
+.pal{display:flex;flex-wrap:wrap;gap:6px 14px;margin-bottom:10px}
+.pg{display:flex;flex-direction:column;gap:4px}
+.pg .pgh{font:700 11px var(--sans);letter-spacing:.08em;text-transform:uppercase}
+.pg .pgb{display:flex;flex-wrap:wrap;gap:5px}
+.pal button{display:flex;align-items:center;gap:5px;font:600 12px var(--mono);padding:3px 8px 3px 4px}
+.pal svg{width:28px;height:28px;stroke:var(--line);stroke-width:2.5;fill:none;flex:none}
+.pal svg text{stroke:none;fill:var(--line);font:700 10px var(--mono)}
+/* ladder */
+.ladder{overflow-x:auto;padding:6px 2px 2px}
+.rungs{display:inline-flex;flex-direction:column;min-width:100%}
+.rung{display:flex;align-items:flex-start;gap:6px;margin-bottom:4px}
+.rnum{width:30px;flex:none;margin-top:24px;padding:4px 0;font:600 12px var(--mono)}
+.rnum.selx{background:var(--sel);border-color:var(--sel);color:var(--bg)}
+.rwrap{flex:1;min-width:0}
+.rcom{font:italic 12.5px var(--sans);padding:0 4px 2px}
+.rbody{display:flex;border-left:4px solid var(--line);border-right:4px solid var(--line);padding:2px 0}
+.running .rbody{border-left-color:var(--power)}
+.series{display:flex;align-items:flex-start;flex:1}
+.fill{flex:1;min-width:18px;height:2px;margin-top:39px;background:var(--line)}
+.fill.p{background:var(--power);height:4px;margin-top:38px}
+.n{flex:none;width:108px;cursor:pointer;border-radius:4px}
+.n .lab{height:22px;line-height:22px;font:600 12px var(--mono);text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 3px}
+.n .sym{height:36px;display:flex;align-items:center}
+.n .adr{height:20px;line-height:18px;font:10px var(--mono);text-align:center;white-space:nowrap;overflow:hidden}
+.w{flex:1;height:2px;background:var(--line)}
+.pin>.sym>.w.l,.pin>.bxr>.w.l,.pout>.sym>.w.r,.pout>.bxr>.w.r{background:var(--power);height:4px}
+.n svg{width:36px;height:36px;flex:none;stroke:var(--line);stroke-width:2.5;fill:none;overflow:visible}
+.n svg text{stroke:none;fill:var(--line);font:700 11px var(--mono)}
+.pin>.sym>svg .wl,.pout>.sym>svg .wr{stroke:var(--power);stroke-width:4}
+.on>.sym>svg .sy{stroke:var(--power)} .on>.sym>svg text{fill:var(--power)}
+.n.selx{outline:2px solid var(--sel);outline-offset:-1px;background:var(--tint)}
+.slot .plus{width:26px;height:26px;border:1.5px dashed var(--line);border-radius:4px;display:grid;place-items:center;font-weight:700;flex:none}
+.n.par{width:auto;cursor:default;display:flex;flex-direction:column}
+.branch{display:flex;align-items:flex-start;position:relative;min-height:80px}
+.branch::before,.branch::after{content:"";position:absolute;width:2px;background:var(--line);top:0;bottom:0}
+.branch::before{left:0} .branch::after{right:0}
+.branch:first-child::before,.branch:first-child::after{top:39px}
+.branch:last-child::before,.branch:last-child::after{top:0;bottom:auto;height:41px}
+.par.pin>.branch::before,.par.pout>.branch::after{background:var(--power);width:4px}
+.n.blk{width:156px}
+.bxr{display:flex;align-items:flex-start}
+.bxr .w{flex:none;width:10px;margin-top:17px}
+.pin>.bxr>.w.l,.pout>.bxr>.w.r{margin-top:16px}
+.bx{flex:1;min-width:0;border:2px solid var(--line);font:11px var(--mono);background:var(--bg)}
+.blk.on .bx{border-color:var(--power)}
+.b1{display:flex;justify-content:space-between;align-items:center;height:32px;padding:0 5px;gap:4px}
+.b1 b{font-size:12px}
+.b1.c{justify-content:center;white-space:nowrap;overflow:hidden;font-weight:600}
+.b2{height:18px;padding:0 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.blk .pad{height:6px}
+/* inspector */
+#insp{margin-top:10px;border-top:1.5px solid var(--line);padding-top:10px}
+.fields{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:end}
+.fields label{display:flex;flex-direction:column;gap:3px;font-size:12px;font-weight:600}
+.fields input,.fields select{font-family:var(--mono);width:170px}
+.fields input[type=number]{width:90px}
+.rowbtn{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+#warn{margin:8px 0 0;padding-left:18px;color:var(--warn);font-size:13px}
+#warn:empty{display:none}
+table{border-collapse:collapse;width:100%;font:12px var(--mono);font-variant-numeric:tabular-nums}
+th,td{border:1px solid var(--line);padding:3px 6px;text-align:left}
+th{font-family:var(--sans);font-size:12px}
+td.t{color:var(--power);font-weight:600}
+.tw{overflow-x:auto}
+/* trace */
+.trh{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.trh h2{margin:0}
+#trace{display:block;width:100%;border:1.5px solid var(--line);border-radius:6px}
+/* tooltip */
+#tip{position:fixed;z-index:300;max-width:290px;background:var(--fg);color:var(--bg);border-radius:6px;padding:8px 10px;font:12.5px/1.4 var(--sans);pointer-events:none;box-shadow:0 4px 14px rgba(0,0,0,.35)}
+#tip b{display:block;font-size:13.5px;margin-bottom:1px}
+#tip .ab{display:block;font:600 11.5px var(--mono);margin-bottom:4px}
+#toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:8px 14px;border-radius:6px;font-weight:600;z-index:310;max-width:90vw}
+/* dialog */
+dialog{border:2px solid var(--line);border-radius:10px;background:var(--bg);color:var(--fg);padding:16px;width:min(760px,94vw);max-height:92vh;overflow:auto}
+dialog::backdrop{background:rgba(0,0,0,.55)}
+dialog .fields input[type=text]{width:240px}
+dialog .chk{flex-direction:row;align-items:center;gap:6px;font-weight:600}
+#expimg{max-width:100%;border:1.5px solid var(--line);margin-top:10px;display:block}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+/* intro */
+#intro{position:fixed;inset:0;z-index:400;background:var(--bg);display:grid;place-items:center;padding:24px;cursor:pointer;animation:introOut .6s ease 3.4s forwards}
+#intro .in{width:min(620px,100%);text-align:center}
+#intro svg{width:100%;height:auto;display:block}
+#intro svg path{fill:none;stroke:var(--fg);stroke-width:5;stroke-linecap:square;stroke-dasharray:1;stroke-dashoffset:1;animation:introDraw .45s ease forwards, introPower .4s ease 2s forwards}
+#intro .r1{animation-delay:0s,2s}#intro .w1{animation-delay:.35s,2s}#intro .c1{animation-delay:.7s,2s}#intro .w2{animation-delay:.95s,2s}#intro .o1{animation-delay:1.25s,2s}#intro .w3{animation-delay:1.5s,2s}#intro .r2{animation-delay:1.7s,2s}
+#intro svg path.r2{animation-name:introDraw}
+#intro .name{font:700 clamp(26px,6vw,44px)/1.1 var(--sans);letter-spacing:-.02em;margin:18px 0 6px;opacity:0;transform:translateY(10px);animation:introUp .6s ease 1.9s forwards}
+#intro .tag{font:600 clamp(14px,3vw,20px) var(--mono);letter-spacing:.3em;text-transform:uppercase;color:var(--power);margin:0;opacity:0;animation:introUp .6s ease 2.3s forwards}
+#intro .skip{font:12px var(--sans);margin-top:26px;opacity:0;animation:introUp .5s ease 2.6s forwards}
+@keyframes introDraw{to{stroke-dashoffset:0}}
+@keyframes introPower{to{stroke:var(--power)}}
+@keyframes introUp{to{opacity:1;transform:none}}
+@keyframes introOut{to{opacity:0;visibility:hidden}}
+@media (prefers-reduced-motion: reduce){#intro,#intro *{animation-duration:.01s!important;animation-delay:0s!important}#intro{animation:introOut .3s ease 1.8s forwards!important}}
+</style>
+</head>
+<body>
+<div id="intro" role="button" tabindex="0" aria-label="O.O PLC Trainer, Free Build. Press to skip the introduction">
+  <div class="in">
+    <svg viewBox="0 0 600 150" aria-hidden="true">
+      <path class="r1" pathLength="1" d="M40 20V130"/>
+      <path class="w1" pathLength="1" d="M40 75H220"/>
+      <path class="c1" pathLength="1" d="M220 45V105M250 45V105"/>
+      <path class="w2" pathLength="1" d="M250 75H420"/>
+      <path class="o1" pathLength="1" d="M440 45Q412 75 440 105M470 45Q498 75 470 105"/>
+      <path class="w3" pathLength="1" d="M490 75H560"/>
+      <path class="r2" pathLength="1" d="M560 20V130"/>
+    </svg>
+    <p class="name">O.O</p>
+    <p class="tag">PLC Trainer &middot; Free Build</p>
+    <p class="skip">Click anywhere to skip</p>
+  </div>
+</div>
+
+<header class="top">
+  <div>
+    <h1>O.O PLC Trainer: Free Build</h1>
+    <p class="sub">Build any ladder program from scratch, run it with 10 inputs and 10 outputs, watch the timing chart, and export your work as a JPG.</p>
+  </div>
+  <div class="bar r" role="group" aria-label="Run controls">
+    <button id="b-run" class="primary" data-tip="ui-run">Pause</button>
+    <button id="b-step" data-tip="ui-step">Step 1 scan</button>
+    <button id="b-reset" data-tip="ui-reset">Reset PLC</button>
+    <span class="scan" id="scanct">scan 0</span>
+  </div>
+</header>
+
+<div class="bar" style="margin-bottom:14px" role="group" aria-label="Program and display">
+  <button id="b-exp" class="primary" data-tip="ui-export">Export JPG</button>
+  <button id="b-save" data-tip="ui-save">Save file</button>
+  <button id="b-load" data-tip="ui-load">Load file</button>
+  <button id="b-new" data-tip="ui-new">New</button>
+  <input type="file" id="f-load" accept=".json,application/json" hidden>
+  <span class="sep"></span>
+  <label style="font-weight:600;font-size:13px">Addresses <select id="s-style" data-tip="ui-style"><option value="micro800">Micro800 (_IO_EM_DI_00)</option><option value="logix">MicroLogix (I:0/0)</option></select></label>
+  <button id="b-theme" data-tip="ui-theme" aria-pressed="false">Dark mode</button>
+</div>
+
+<div class="app">
+  <div class="side" id="side-in">
+  <section class="panel" id="p-in" aria-labelledby="h-in">
+      <h2 id="h-in">Inputs</h2>
+      <p class="hint">Click a switch to turn it on or off. Hold a push button to press it. Type in a name box to rename a tag.</p>
+      <div id="ins"></div>
+  </section>
+  <section class="panel" id="p-pal" aria-labelledby="h-pal">
+      <h2 id="h-pal">Instructions</h2>
+      <p class="hint">Same buttons as above, kept here so they stay in view while you scroll.</p>
+      <div class="pal" id="pal2" role="toolbar" aria-label="Instructions (quick access)"></div>
+  </section>
+  </div>
+
+  <div class="col" id="main">
+    <section class="panel" aria-labelledby="h-l">
+      <h2 id="h-l">Ladder program</h2>
+      <p class="hint">Hover over any instruction to see its name. Click an instruction below to add it after the selected one, or click an empty <b>+</b> to place it there. Click a rung number to select the whole rung. Green shows where power flows.</p>
+      <div class="pal" id="pal" role="toolbar" aria-label="Instructions"></div>
+      <div class="ladder" id="ladder"></div>
+      <div id="insp"></div>
+      <ul id="warn"></ul>
+    </section>
+    <section class="panel" aria-labelledby="h-t">
+      <div class="trh"><h2 id="h-t">Timing chart</h2>
+        <label style="font-size:12px;font-weight:600">Window <select id="s-win"><option value="5">5 s</option><option value="10" selected>10 s</option><option value="30">30 s</option></select></label></div>
+      <canvas id="trace" aria-label="Timing chart of the tags used in your program"></canvas>
+    </section>
+    <section class="panel" aria-labelledby="h-w">
+      <h2 id="h-w">Live values</h2>
+      <div class="tw"><table id="watch"></table></div>
+    </section>
+  </div>
+
+  <section class="panel" id="p-out" aria-labelledby="h-out">
+    <h2 id="h-out">Outputs</h2>
+    <p class="hint">Lights turn yellow when the PLC switches an output on.</p>
+    <div id="outs"></div>
+  </section>
+</div>
+
+<dialog id="dlg-exp" aria-labelledby="dx-h">
+  <h2 id="dx-h">Export ladder as JPG</h2>
+  <div class="fields">
+    <label>Your name<input type="text" id="x-name" autocomplete="name"></label>
+    <label>Title<input type="text" id="x-title" value="Ladder program"></label>
+  </div>
+  <div class="fields" style="margin-top:10px">
+    <label class="chk"><input type="checkbox" id="x-table" checked> Include the tag table</label>
+    <label class="chk"><input type="checkbox" id="x-live"> Show live power (green)</label>
+  </div>
+  <div class="rowbtn">
+    <button id="x-make" class="primary">Create JPG</button>
+    <a id="x-dl" role="button" download="ladder.jpg" hidden><button type="button" class="primary">Download JPG</button></a>
+    <button id="x-close" type="button">Close</button>
+  </div>
+  <img id="expimg" alt="Preview of the exported ladder" hidden>
+</dialog>
+
+<div id="tip" role="tooltip" hidden></div>
+<div id="toast" role="status" hidden></div>
+<datalist id="taglist"></datalist>
+
+<script>
+"use strict";
+/* ================= engine ================= */
+const SCAN = 20;
+let _uid = 1; const nid = () => "n" + (_uid++);
+const COILS = ["coil", "ncoil", "set", "reset"], CONTACTS = ["no", "nc", "pos", "neg"], TIMERS = ["TON", "TOF", "TP"], COUNTERS = ["CTU", "CTD", "CTUD"];
+const isCoil = n => COILS.includes(n.type), isBlock = n => TIMERS.includes(n.type) || COUNTERS.includes(n.type);
+const freshState = () => ({ tags: {}, blocks: {}, edge: {}, flow: {} });
+function getBool(S, name) {
+  if (!name) return false;
+  if (name.endsWith(".Q")) { const b = S.blocks[name.slice(0, -2)]; return !!(b && b.q); }
+  if (name.endsWith(".QD")) { const b = S.blocks[name.slice(0, -3)]; return !!(b && b.qd); }
+  return !!S.tags[name];
+}
+function getNum(S, v) {
+  v = String(v).trim();
+  if (v !== "" && !isNaN(v)) return parseFloat(v);
+  const m = v.match(/^(.+)\.(CV|ET|PV|PT)$/);
+  if (m) { const b = S.blocks[m[1]]; if (!b) return 0; return m[2] === "CV" ? b.cv : m[2] === "ET" ? b.et / 1000 : m[2] === "PV" ? (b.pv || 0) : (b.pt || 0) / 1000; }
+  return getBool(S, v) ? 1 : 0;
+}
+const blk = (S, n) => S.blocks[n.name] || (S.blocks[n.name] = { et: 0, q: false, qd: false, cv: 0, prev: false, prevd: false, run: false, init: false });
+function evalSeries(arr, p, S, dt) { for (const n of arr) p = evalNode(n, p, S, dt); return p; }
+function evalNode(n, p, S, dt) {
+  let o = false, b, v;
+  switch (n.type) {
+    case "no": o = p && getBool(S, n.tag); break;
+    case "nc": o = p && !getBool(S, n.tag); break;
+    case "pos": v = getBool(S, n.tag); o = p && v && S.edge[n.id] === false; S.edge[n.id] = v; break;
+    case "neg": v = getBool(S, n.tag); o = p && !v && S.edge[n.id] === true; S.edge[n.id] = v; break;
+    case "coil": if (n.tag) S.tags[n.tag] = p; o = p; break;
+    case "ncoil": if (n.tag) S.tags[n.tag] = !p; o = p; break;
+    case "set": if (p && n.tag) S.tags[n.tag] = true; o = p; break;
+    case "reset": if (p && n.tag) S.tags[n.tag] = false; o = p; break;
+    case "par": for (const br of n.branches) if (br.length && evalSeries(br, p, S, dt)) o = true; break;
+    case "cmp": { const a = getNum(S, n.a), c = getNum(S, n.b);
+      o = p && ({ "=": a === c, "<>": a !== c, ">": a > c, ">=": a >= c, "<": a < c, "<=": a <= c })[n.op]; break; }
+    case "TON": b = blk(S, n); b.pt = n.pt; if (p) b.et = Math.min(b.et + dt, n.pt); else b.et = 0; b.q = p && b.et >= n.pt; o = b.q; break;
+    case "TOF": b = blk(S, n); b.pt = n.pt; if (p) { b.q = true; b.et = 0; } else if (b.q) { b.et = Math.min(b.et + dt, n.pt); if (b.et >= n.pt) b.q = false; } o = b.q; break;
+    case "TP": b = blk(S, n); b.pt = n.pt; if (p && !b.prev && !b.run) { b.run = true; b.et = 0; }
+      if (b.run) { b.et = Math.min(b.et + dt, n.pt); if (b.et >= n.pt) b.run = false; } else if (!p) b.et = 0;
+      b.q = b.run; b.prev = p; o = b.q; break;
+    case "CTU": b = blk(S, n); b.pv = n.pv; if (n.reset && getBool(S, n.reset)) b.cv = 0; else if (p && !b.prev) b.cv++; b.prev = p; b.q = b.cv >= n.pv; o = b.q; break;
+    case "CTD": b = blk(S, n); b.pv = n.pv; if (!b.init) { b.cv = n.pv; b.init = true; }
+      if (n.reset && getBool(S, n.reset)) b.cv = n.pv; else if (p && !b.prev && b.cv > 0) b.cv--; b.prev = p; b.q = b.cv <= 0; o = b.q; break;
+    case "CTUD": { b = blk(S, n); b.pv = n.pv; const d = getBool(S, n.cd);
+      if (n.reset && getBool(S, n.reset)) b.cv = 0; else { if (p && !b.prev) b.cv++; if (d && !b.prevd && b.cv > 0) b.cv--; }
+      b.prev = p; b.prevd = d; b.q = b.cv >= n.pv; b.qd = b.cv <= 0; o = b.q; break; }
+  }
+  o = !!o; S.flow[n.id] = [p, o]; return o;
+}
+function scan(prog, S, inputs, dt) { Object.assign(S.tags, inputs); for (const r of prog.rungs) evalSeries(r.items, true, S, dt); }
+function stamp(rungs) {
+  const cl = n => { const c = Object.assign({}, n, { id: nid() }); if (c.type === "par") c.branches = n.branches.map(b => b.map(cl)); return c; };
+  return { rungs: rungs.map(r => ({ id: nid(), comment: r.comment || "", items: r.items.map(cl) })) };
+}
+function strip(prog) { const cl = n => { const c = Object.assign({}, n); delete c.id; if (c.type === "par") c.branches = n.branches.map(b => b.map(cl)); return c; }; return prog.rungs.map(r => ({ comment: r.comment || "", items: r.items.map(cl) })); }
+
+/* ================= engine self-test ================= */
+window.__selftest = () => {
+  const bad = [];
+  const N = tag => ({ type: "no", tag }), C = tag => ({ type: "nc", tag }), O = tag => ({ type: "coil", tag }), P = (...b) => ({ type: "par", branches: b });
+  const run = (name, rungs, steps) => { const pr = stamp(rungs.map(items => ({ items }))), S = freshState(), inp = {};
+    for (const st of steps) { Object.assign(inp, st.set || {}); const n = Math.max(1, Math.round((st.ms || 100) / SCAN)); for (let i = 0; i < n; i++) scan(pr, S, inp, SCAN);
+      for (const [k, v] of Object.entries(st.expect || {})) { const got = k.includes(".CV") ? getNum(S, k) : getBool(S, k); if (got !== v) bad.push(`${name}: ${st.say || ""} ${k} expected ${v} got ${got}`); } } };
+  run("latch", [[P([N("start")], [N("m")]), C("stop"), O("m")]], [{ say: "idle", expect: { m: false } }, { set: { start: true }, expect: { m: true } }, { set: { start: false }, expect: { m: true } }, { set: { stop: true }, expect: { m: false } }, { set: { stop: false }, expect: { m: false } }]);
+  run("TON", [[N("i"), { type: "TON", name: "T1", pt: 1000 }, O("o")]], [{ set: { i: true }, ms: 500, expect: { o: false } }, { ms: 600, expect: { o: true } }, { set: { i: false }, expect: { o: false } }, { set: { i: true }, ms: 400 }, { set: { i: false }, ms: 100 }, { set: { i: true }, ms: 700, expect: { o: false } }]);
+  run("TOF", [[N("i"), { type: "TOF", name: "T1", pt: 1000 }, O("o")]], [{ set: { i: true }, expect: { o: true } }, { set: { i: false }, ms: 500, expect: { o: true } }, { ms: 600, expect: { o: false } }]);
+  run("TP", [[N("i"), { type: "TP", name: "T1", pt: 500 }, O("o")]], [{ set: { i: true }, ms: 100, expect: { o: true } }, { ms: 600, expect: { o: false } }, { set: { i: false }, ms: 100, expect: { o: false } }]);
+  const pl = (tag, n) => { const s = []; for (let i = 0; i < n; i++) s.push({ set: { [tag]: true }, ms: 60 }, { set: { [tag]: false }, ms: 60 }); return s; };
+  run("CTU", [[N("i"), { type: "CTU", name: "C1", pv: 3, reset: "r" }, O("o")], [{ type: "cmp", a: "C1.CV", op: "=", b: "2" }, O("two")]], [...pl("i", 2), { expect: { o: false, two: true } }, ...pl("i", 1), { expect: { o: true, two: false } }, { set: { r: true }, expect: { o: false } }]);
+  run("CTD", [[N("i"), { type: "CTD", name: "C1", pv: 2, reset: "ld" }, O("o")]], [{ expect: { o: false } }, ...pl("i", 2), { expect: { o: true } }, { set: { ld: true }, expect: { o: false } }]);
+  run("CTUD", [[N("u"), { type: "CTUD", name: "C1", pv: 2, cd: "d", reset: "r" }, O("o")]], [...pl("u", 2), { expect: { o: true } }, ...pl("d", 1), { expect: { o: false } }, ...pl("u", 1), { expect: { o: true } }, { set: { r: true }, expect: { o: false } }]);
+  run("set/reset", [[N("s"), { type: "set", tag: "m" }], [N("r"), { type: "reset", tag: "m" }], [N("m"), O("o")]], [{ set: { s: true }, expect: { m: true, o: true } }, { set: { s: false }, expect: { m: true } }, { set: { r: true }, expect: { m: false, o: false } }]);
+  run("ncoil", [[N("i"), { type: "ncoil", tag: "o" }]], [{ expect: { o: true } }, { set: { i: true }, expect: { o: false } }]);
+  run("edges", [[{ type: "pos", tag: "i" }, { type: "set", tag: "up" }], [{ type: "neg", tag: "i" }, { type: "set", tag: "dn" }], [N("i"), O("hold")]],
+    [{ expect: { up: false, dn: false } }, { set: { i: true }, expect: { up: true, dn: false, hold: true } }, { set: { i: false }, expect: { dn: true, hold: false } }]);
+  run("compare", [[N("i"), { type: "TON", name: "T1", pt: 2000 }, O("a")], [{ type: "cmp", a: "T1.ET", op: ">=", b: "1" }, O("half")]], [{ set: { i: true }, ms: 600, expect: { half: false } }, { ms: 600, expect: { half: true, a: false } }, { ms: 1000, expect: { a: true } }]);
+  return bad;
+};
+
+/* ================= tooltips ================= */
+const cmpTip = (n, ab, d) => ({ n, ab, d: "Passes power when " + d + " Compares A with B. Use a number or a block value such as CTU_1.CV or TON_1.ET (seconds)." });
+const TIPS = {
+  no: { n: "Direct Contact", ab: "Allen-Bradley: XIC (Examine If Closed)", d: "Passes power when its tag is TRUE. Use it to test a switch, a sensor or an output." },
+  nc: { n: "Reverse Contact", ab: "Allen-Bradley: XIO (Examine If Open)", d: "Passes power when its tag is FALSE." },
+  pos: { n: "Rising Edge Contact", ab: "Allen-Bradley: ONS (One Shot)", d: "Passes power for one scan only, when its tag changes from FALSE to TRUE." },
+  neg: { n: "Falling Edge Contact", ab: "Allen-Bradley: OSF (One Shot Falling)", d: "Passes power for one scan only, when its tag changes from TRUE to FALSE." },
+  coil: { n: "Direct Coil", ab: "Allen-Bradley: OTE (Output Energise)", d: "Its tag is TRUE while power reaches the coil and FALSE when it does not." },
+  ncoil: { n: "Reverse Coil", ab: "Connected Components Workbench: Reverse Coil", d: "Its tag is the opposite of the power reaching the coil." },
+  set: { n: "Set Coil (Latch)", ab: "Allen-Bradley: OTL (Output Latch)", d: "Turns its tag TRUE and keeps it TRUE until a Reset Coil clears it." },
+  reset: { n: "Reset Coil (Unlatch)", ab: "Allen-Bradley: OTU (Output Unlatch)", d: "Turns its tag FALSE when power reaches it." },
+  TON: { n: "TON On-Delay Timer", ab: "Allen-Bradley: TON", d: "Q turns on after IN has been TRUE for the whole preset time PT. If IN drops early the timer resets." },
+  TOF: { n: "TOF Off-Delay Timer", ab: "Allen-Bradley: TOF", d: "Q turns on as soon as IN is TRUE and stays on for PT after IN goes FALSE." },
+  TP: { n: "TP Pulse Timer", ab: "IEC 61131-3: TP (Connected Components Workbench)", d: "Q gives one pulse of length PT each time IN goes from FALSE to TRUE." },
+  CTU: { n: "CTU Count Up", ab: "Allen-Bradley: CTU", d: "Adds 1 each time its input goes from FALSE to TRUE. Q is TRUE when CV reaches PV. The RESET tag sets CV back to 0." },
+  CTD: { n: "CTD Count Down", ab: "Allen-Bradley: CTD", d: "Starts at PV and subtracts 1 each time its input goes from FALSE to TRUE. Q is TRUE when CV reaches 0. The LOAD tag sets CV back to PV." },
+  CTUD: { n: "CTUD Count Up and Down", ab: "IEC 61131-3: CTUD (Connected Components Workbench)", d: "Counts up on the rung input and down on the CD tag. Q is TRUE when CV reaches PV. The RESET tag sets CV to 0." },
+  "cmp=": cmpTip("Equal ( = )", "Allen-Bradley: EQU", "A equals B."), "cmp<>": cmpTip("Not Equal ( <> )", "Allen-Bradley: NEQ", "A is not equal to B."),
+  "cmp>": cmpTip("Greater Than ( > )", "Allen-Bradley: GRT", "A is greater than B."), "cmp>=": cmpTip("Greater or Equal ( >= )", "Allen-Bradley: GEQ", "A is greater than or equal to B."),
+  "cmp<": cmpTip("Less Than ( < )", "Allen-Bradley: LES", "A is less than B."), "cmp<=": cmpTip("Less or Equal ( <= )", "Allen-Bradley: LEQ", "A is less than or equal to B."),
+  branch: { n: "Branch (parallel path)", ab: "Allen-Bradley: Branch", d: "Adds a second path in parallel, which means OR: power passes if either path passes. Select an instruction first." },
+  rung: { n: "New Rung", ab: "", d: "Adds an empty rung below the selected one." },
+  "ui-run": { n: "Run / Pause", ab: "", d: "Pauses or resumes the PLC scan. While paused you can still edit and step." },
+  "ui-step": { n: "Step 1 scan", ab: "", d: "Runs exactly one scan while paused, so you can watch the logic change scan by scan." },
+  "ui-reset": { n: "Reset PLC", ab: "", d: "Clears all outputs, memory bits, timers and counters. Your program is kept." },
+  "ui-export": { n: "Export JPG", ab: "", d: "Creates a picture of your ladder program that you can save and hand in." },
+  "ui-save": { n: "Save file", ab: "", d: "Downloads your program as a file you can open again later or share." },
+  "ui-load": { n: "Load file", ab: "", d: "Opens a program file that you saved earlier." },
+  "ui-new": { n: "New program", ab: "", d: "Clears the ladder and starts again. Click twice to confirm." },
+  "ui-style": { n: "Address style", ab: "", d: "Shows addresses the Micro800 way (_IO_EM_DI_00) or the MicroLogix and SLC way (I:0/0)." },
+  "ui-theme": { n: "Dark mode", ab: "", d: "Switches between a light and a dark screen." },
+};
+const tipKey = n => n.type === "cmp" ? "cmp" + n.op : n.type;
+const tipEl = document.getElementById("tip"); let tipFor = null;
+const $ = s => document.querySelector(s), esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+function showTip(el) {
+  if (el === tipFor) return; tipFor = el;
+  const t = el && TIPS[el.dataset.tip]; if (!t) { tipEl.hidden = true; tipFor = null; return; }
+  tipEl.innerHTML = `<b>${esc(t.n)}</b>${t.ab ? `<span class="ab">${esc(t.ab)}</span>` : ""}<span>${esc(t.d)}</span>`; tipEl.hidden = false;
+  const r = el.getBoundingClientRect(), tw = tipEl.offsetWidth, th = tipEl.offsetHeight;
+  let x = Math.min(Math.max(8, r.left + r.width / 2 - tw / 2), innerWidth - tw - 8), y = r.bottom + 8; if (y + th > innerHeight - 8) y = Math.max(8, r.top - th - 8);
+  tipEl.style.left = x + "px"; tipEl.style.top = y + "px";
+}
+document.addEventListener("pointerover", e => { if (e.pointerType === "touch") return; const el = e.target.closest && e.target.closest("[data-tip]"); showTip(el); });
+document.addEventListener("pointerdown", e => { if (e.pointerType === "touch") showTip(null); });
+document.addEventListener("focusin", e => showTip(e.target.closest && e.target.closest("[data-tip]")));
+document.addEventListener("focusout", () => showTip(null));
+document.addEventListener("scroll", () => showTip(null), true);
+document.addEventListener("keydown", e => { if (e.key === "Escape") showTip(null); });
+let toastT; function toast(t) { const el = $("#toast"); el.textContent = t; el.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => el.hidden = true, 3500); }
+
+/* ================= I/O model ================= */
+const KINDS = { sw: "Switch", pbno: "Push button NO", pbnc: "Push button NC" };
+const defaultIO = () => ({ ins: ["pbno", "pbno", "pbno", "pbno", "pbnc", "pbnc", "sw", "sw", "sw", "sw"].map((k, i) => ({ tag: "IN_" + i, kind: k })), outs: Array.from({ length: 10 }, (_, i) => ({ tag: "OUT_" + i })) });
+let IO = defaultIO(), style = "micro800";
+const pad2 = i => String(i).padStart(2, "0");
+const inAddr = i => style === "micro800" ? `_IO_EM_DI_${pad2(i)}` : `I:0/${i}`, outAddr = i => style === "micro800" ? `_IO_EM_DO_${pad2(i)}` : `O:0/${i}`;
+function ioOf(t) {
+  let i = IO.ins.findIndex(x => x.tag === t); if (i >= 0) return { dir: "in", i, kind: IO.ins[i].kind, addr: inAddr(i) };
+  i = IO.outs.findIndex(x => x.tag === t); if (i >= 0) return { dir: "out", i, addr: outAddr(i) };
+  return null;
+}
+const restInputs = () => Object.fromEntries(IO.ins.map(x => [x.tag, x.kind === "pbnc"]));
+const cleanTag = s => s.trim().replace(/[^\w]/g, "_");
+
+/* ================= app state ================= */
+let prog, S, phys, lastInp = {}, running = true, scans = 0, sel = null, byId = new Map(), slots = [], MEM = new Map();
+const KEY = "plc-freebuild-v1";
+function save() { try { localStorage.setItem(KEY, JSON.stringify(snapshot())); } catch (e) {} }
+const snapshot = () => ({ app: "oluseun-plc-freebuild", v: 1, style, ins: IO.ins, outs: IO.outs, rungs: strip(prog) });
+function resetPLC() { S = freshState(); IO.ins.forEach(x => S.tags[x.tag] = false); IO.outs.forEach(x => S.tags[x.tag] = false); phys = restInputs(); scans = 0; clearTrace(); }
+function walk(cb) { const go = (arr, rung) => arr.forEach((n, i) => { cb(n, arr, i, rung); if (n.type === "par") n.branches.forEach(b => go(b, rung)); }); prog.rungs.forEach(r => go(r.items, r)); }
+function changed() { renderLadder(); renderInsp(); validate(); save(); refreshTrace(); tickOnce(false); paint(true); }
+
+/* ================= I/O panel ================= */
+function renderIO() {
+  $("#ins").innerHTML = IO.ins.map((x, i) => {
+    const lab = x.kind === "sw" ? (phys[x.tag] ? "ON" : "OFF") : x.kind === "pbnc" ? "push NC" : "push";
+    return `<div class="iorow"><button class="pb${x.kind === "sw" && phys[x.tag] ? " act" : ""}" data-in="${x.tag}" data-kind="${x.kind}" aria-label="${x.tag} ${KINDS[x.kind]}">${lab}</button>
+    <div class="nmw"><input class="nmin" data-dir="in" data-i="${i}" value="${esc(x.tag)}" aria-label="Input ${i} name" autocomplete="off" spellcheck="false">
+    <span class="ad"><span>${inAddr(i)}</span><select data-kind-i="${i}" aria-label="Input ${i} type">${Object.entries(KINDS).map(([k, v]) => `<option value="${k}" ${k === x.kind ? "selected" : ""}>${v}</option>`).join("")}</select></span></div>
+    <span class="st" data-st="${x.tag}"></span></div>`; }).join("");
+  $("#outs").innerHTML = IO.outs.map((x, i) => `<div class="iorow"><span class="lamp" data-lamp="${x.tag}"></span>
+    <div class="nmw"><input class="nmin" data-dir="out" data-i="${i}" value="${esc(x.tag)}" aria-label="Output ${i} name" autocomplete="off" spellcheck="false"><span class="ad"><span>${outAddr(i)}</span></span></div>
+    <span class="st" data-st="${x.tag}"></span></div>`).join("");
+}
+function press(btn, down) { const t = btn.dataset.in, k = btn.dataset.kind; if (k === "sw") return; phys[t] = k === "pbnc" ? !down : down; btn.classList.toggle("act", down); }
+$("#ins").addEventListener("pointerdown", e => { const b = e.target.closest("[data-in]"); if (b && b.dataset.kind !== "sw") { press(b, true); try { b.setPointerCapture(e.pointerId); } catch (_) {} } });
+["pointerup", "pointercancel", "lostpointercapture"].forEach(ev => $("#ins").addEventListener(ev, e => { const b = e.target.closest("[data-in]"); if (b) press(b, false); }));
+$("#ins").addEventListener("keydown", e => { const b = e.target.closest("[data-in]"); if (b && (e.key === " " || e.key === "Enter") && b.dataset.kind !== "sw") { e.preventDefault(); press(b, true); } });
+$("#ins").addEventListener("keyup", e => { const b = e.target.closest("[data-in]"); if (b && b.dataset.kind !== "sw") press(b, false); });
+$("#ins").addEventListener("click", e => { const b = e.target.closest("[data-in]"); if (b && b.dataset.kind === "sw") { phys[b.dataset.in] = !phys[b.dataset.in]; b.textContent = phys[b.dataset.in] ? "ON" : "OFF"; b.classList.toggle("act", phys[b.dataset.in]); } });
+function renameTag(oldT, raw) {
+  const nt = cleanTag(raw); if (!nt || nt === oldT) return oldT;
+  if (IO.ins.some(x => x.tag === nt) || IO.outs.some(x => x.tag === nt)) { toast("The name " + nt + " is already used by another input or output."); return oldT; }
+  walk(n => { for (const k of ["tag", "reset", "cd", "a", "b"]) if (n[k] === oldT) n[k] = nt; });
+  if (oldT in phys) { phys[nt] = phys[oldT]; delete phys[oldT]; } if (oldT in S.tags) { S.tags[nt] = S.tags[oldT]; delete S.tags[oldT]; }
+  return nt;
+}
+function ioChange(e) {
+  const nm = e.target.closest(".nmin"), kd = e.target.closest("[data-kind-i]");
+  if (nm) { const list = nm.dataset.dir === "in" ? IO.ins : IO.outs, it = list[+nm.dataset.i], nt = renameTag(it.tag, nm.value); it.tag = nt; nm.value = nt; renderIO(); changed(); }
+  if (kd) { const it = IO.ins[+kd.dataset.kindI]; it.kind = kd.value; phys[it.tag] = it.kind === "pbnc"; renderIO(); changed(); }
+}
+$("#ins").addEventListener("change", ioChange); $("#outs").addEventListener("change", ioChange);
+
+/* ================= simulation loop ================= */
+function tickOnce(physics = true) { lastInp = Object.assign({}, phys); scan(prog, S, lastInp, physics ? SCAN : 0); if (physics) { scans++; record(); } }
+let lastT = 0, acc = 0, lastWatch = 0;
+function frame(t) {
+  const d = Math.min(t - lastT, 200); lastT = t;
+  if (running) { acc += d; let n = 0; while (acc >= SCAN && n < 12) { tickOnce(); acc -= SCAN; n++; } if (n === 12) acc = 0; }
+  const slow = t - lastWatch > 120; paint(slow); if (slow) lastWatch = t;
+  requestAnimationFrame(frame);
+}
+function nodeOn(n) {
+  const f = S.flow[n.id] || [false, false];
+  if (n.type === "no" || COILS.includes(n.type)) return getBool(S, n.tag); if (n.type === "nc") return !getBool(S, n.tag);
+  if (n.type === "pos" || n.type === "neg" || n.type === "cmp") return f[1]; if (isBlock(n)) return !!(S.blocks[n.name] && S.blocks[n.name].q); return false;
+}
+function paint(slow) {
+  for (const [id, e] of byId) {
+    const el = e.el, f = S.flow[id] || [false, false], n = e.node; if (!el) continue;
+    el.classList.toggle("pin", f[0]); el.classList.toggle("pout", f[1]); el.classList.toggle("on", nodeOn(n));
+    if (isBlock(n) && e.val) { const b = S.blocks[n.name] || { et: 0, cv: 0 }; e.val.textContent = TIMERS.includes(n.type) ? `ET  ${(b.et / 1000).toFixed(1)} s` : `CV  ${b.cv}`; }
+  }
+  document.querySelectorAll("#ladder .fill").forEach(el => { const s = el.dataset.src; el.classList.toggle("p", s === "rail" ? true : !!(S.flow[s] && S.flow[s][1])); });
+  $("#ladder").classList.add("running");
+  document.querySelectorAll("[data-lamp]").forEach(el => { const t = el.dataset.lamp, x = ioOf(t); el.classList.toggle("on", !!x && (x.dir === "in" ? !!lastInp[t] : !!S.tags[t])); });
+  document.querySelectorAll("[data-st]").forEach(el => { const t = el.dataset.st, x = ioOf(t), v = !!x && (x.dir === "in" ? !!lastInp[t] : !!S.tags[t]), s = v ? "TRUE" : "FALSE"; if (el.textContent !== s) el.textContent = s; });
+  $("#scanct").textContent = `scan ${scans}  (${(scans * SCAN / 1000).toFixed(1)} s)`;
+  if (slow) { renderWatch(); drawTrace(); }
+}
+function renderWatch() {
+  let h = "<tr><th>Tag</th><th>Address</th><th>Value</th></tr>";
+  for (const t of plainTags()) { const x = ioOf(t), v = x && x.dir === "in" ? !!lastInp[t] : !!S.tags[t]; h += `<tr><td>${esc(t)}</td><td>${x ? x.addr : MEM.get(t) || "memory bit"}</td><td class="${v ? "t" : ""}">${v ? "TRUE" : "FALSE"}</td></tr>`; }
+  walk(n => { if (isBlock(n)) { const b = S.blocks[n.name] || { et: 0, cv: 0, q: false }; h += `<tr><td>${esc(n.name)}</td><td>${n.type}</td><td class="${b.q ? "t" : ""}">${TIMERS.includes(n.type) ? `ET ${(b.et / 1000).toFixed(1)} / ${n.pt / 1000} s` : `CV ${b.cv} / ${n.pv}`}, Q ${b.q ? "TRUE" : "FALSE"}</td></tr>`; } });
+  const w = $("#watch"); if (w.innerHTML !== h) w.innerHTML = h;
+}
+
+/* ================= used tags (watch, trace, export table) ================= */
+function plainTags() {
+  const U = new Set(); const add = t => { if (t && !t.includes(".") && isNaN(t)) U.add(t); };
+  walk(n => { add(n.tag); add(n.reset); add(n.cd); if (n.type === "cmp") { add(n.a); add(n.b); } });
+  const ins = IO.ins.map(x => x.tag).filter(t => U.has(t)), outs = IO.outs.map(x => x.tag).filter(t => U.has(t)), mem = [...U].filter(t => !ioOf(t));
+  return [...ins, ...mem, ...outs];
+}
+
+/* ================= timing chart ================= */
+const TRN = 3000; let TR = { tags: [], buf: new Map(), head: 0, count: 0 };
+function clearTrace() { TR = { tags: TR.tags || [], buf: new Map(), head: 0, count: 0 }; }
+function refreshTrace() { const q = []; walk(n => { if (isBlock(n)) q.push(n.name + ".Q"); }); TR.tags = [...plainTags(), ...q].slice(0, 18); for (const t of TR.tags) if (!TR.buf.has(t)) TR.buf.set(t, new Uint8Array(TRN)); }
+function record() { TR.head = (TR.head + 1) % TRN; TR.count = Math.min(TR.count + 1, TRN); for (const t of TR.tags) TR.buf.get(t)[TR.head] = getBool(S, t) ? 1 : 0; }
+function drawTrace() {
+  const cv = $("#trace"), dpr = window.devicePixelRatio || 1, rows = Math.max(TR.tags.length, 1), RH = 26, top = 8, bot = 22, W = cv.clientWidth || 600, H = top + rows * RH + bot;
+  if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); cv.style.height = H + "px"; }
+  const g = cv.getContext("2d"), cs = getComputedStyle(document.documentElement), fg = cs.getPropertyValue("--fg").trim(), pw = cs.getPropertyValue("--power").trim(), bg = cs.getPropertyValue("--bg").trim();
+  g.setTransform(dpr, 0, 0, dpr, 0, 0); g.fillStyle = bg; g.fillRect(0, 0, W, H);
+  const LW = 120, PX = W - LW - 10, win = +$("#s-win").value, ns = win * 50;
+  g.font = "600 11px " + getComputedStyle(document.body).getPropertyValue("--mono"); g.textBaseline = "middle";
+  g.strokeStyle = fg; g.globalAlpha = .25; g.lineWidth = 1;
+  for (let s = 0; s <= win; s += (win > 10 ? 5 : 1)) { const x = LW + PX - s / win * PX; g.beginPath(); g.moveTo(x, top); g.lineTo(x, top + rows * RH); g.stroke(); }
+  g.globalAlpha = 1; g.fillStyle = fg; g.textAlign = "center";
+  for (let s = 0; s <= win; s += (win > 10 ? 5 : 1)) g.fillText(s === 0 ? "now" : "-" + s + "s", LW + PX - s / win * PX, top + rows * RH + 11);
+  if (!TR.tags.length) { g.textAlign = "left"; g.fillText("Add instructions to see their timing here.", 10, top + RH / 2); return; }
+  TR.tags.forEach((t, r) => {
+    const y1 = top + r * RH + 5, y0 = top + r * RH + RH - 5, buf = TR.buf.get(t); g.textAlign = "left"; g.fillStyle = fg; g.fillText(t.length > 15 ? t.slice(0, 14) + "…" : t, 6, top + r * RH + RH / 2);
+    g.strokeStyle = fg; g.globalAlpha = .2; g.beginPath(); g.moveTo(LW, top + (r + 1) * RH); g.lineTo(LW + PX, top + (r + 1) * RH); g.stroke(); g.globalAlpha = 1;
+    g.strokeStyle = pw; g.lineWidth = 2; g.beginPath(); let started = false;
+    for (let i = Math.max(0, ns - TR.count); i < ns; i++) { const idx = ((TR.head - (ns - 1 - i)) % TRN + TRN) % TRN, v = buf[idx], x = LW + i / ns * PX, y = v ? y1 : y0;
+      if (!started) { g.moveTo(x, y); started = true; } else { g.lineTo(x, g.__ly); g.lineTo(x, y); } g.__ly = y; }
+    if (started) g.lineTo(LW + PX, g.__ly); g.stroke();
+  });
+}
+$("#s-win").addEventListener("change", drawTrace);
+
+/* ================= ladder rendering ================= */
+const SYM = {
+  no: `<path class="wl" d="M0 18H11"/><path class="wr" d="M25 18H36"/><path class="sy" d="M11 5V31M25 5V31"/>`,
+  nc: `<path class="wl" d="M0 18H11"/><path class="wr" d="M25 18H36"/><path class="sy" d="M11 5V31M25 5V31M7 30L29 6"/>`,
+  pos: `<path class="wl" d="M0 18H9"/><path class="wr" d="M27 18H36"/><path class="sy" d="M9 5V31M27 5V31"/><text x="18" y="22" text-anchor="middle">P</text>`,
+  neg: `<path class="wl" d="M0 18H9"/><path class="wr" d="M27 18H36"/><path class="sy" d="M9 5V31M27 5V31"/><text x="18" y="22" text-anchor="middle">N</text>`,
+  coil: `<path class="wl" d="M0 18H7"/><path class="wr" d="M29 18H36"/><path class="sy" d="M13 5Q1 18 13 31M23 5Q35 18 23 31"/>`,
+};
+SYM.ncoil = SYM.coil + `<text x="18" y="22" text-anchor="middle">/</text>`; SYM.set = SYM.coil + `<text x="18" y="22" text-anchor="middle">S</text>`; SYM.reset = SYM.coil + `<text x="18" y="22" text-anchor="middle">R</text>`;
+const addrOf = t => { if (!t) return "choose a tag"; if (t.includes(".")) return "block output"; const x = ioOf(t); return x ? x.addr : (MEM.get(t) || "memory bit"); };
+const blkRows = n => n.type === "CTUD" ? ["PV  " + n.pv, "CD  " + (n.cd || "-"), "RESET " + (n.reset || "-")] : n.type === "CTU" ? ["PV  " + n.pv, "RESET " + (n.reset || "-")] : n.type === "CTD" ? ["PV  " + n.pv, "LOAD " + (n.reset || "-")] : ["PT  T#" + n.pt / 1000 + "s"];
+const inPin = n => n.type === "CTU" || n.type === "CTUD" ? "CU" : n.type === "CTD" ? "CD" : "IN";
+function nodeHTML(n) {
+  const cls = sel && sel.type === "node" && sel.id === n.id ? " selx" : "";
+  if (n.type === "par") return `<div class="n par${cls}" data-id="${n.id}">${n.branches.map(b => `<div class="branch">${seriesHTML(b, false)}</div>`).join("")}</div>`;
+  if (n.type === "cmp") return `<div class="n blk${cls}" data-id="${n.id}" data-tip="cmp${n.op}" tabindex="0" role="button" aria-label="Compare ${esc(n.a)} ${n.op} ${esc(n.b)}"><div class="lab">CMP</div><div class="bxr"><i class="w l"></i><div class="bx"><div class="b1 c">${esc(n.a || "?")} ${esc(n.op)} ${esc(n.b)}</div></div><i class="w r"></i></div><div class="pad"></div></div>`;
+  if (isBlock(n)) return `<div class="n blk${cls}" data-id="${n.id}" data-tip="${n.type}" tabindex="0" role="button" aria-label="${n.type} ${esc(n.name)}"><div class="lab">${esc(n.name)}</div><div class="bxr"><i class="w l"></i><div class="bx"><div class="b1"><span>${inPin(n)}</span><b>${n.type}</b><span>Q</span></div>${blkRows(n).map(r => `<div class="b2">${esc(r)}</div>`).join("")}<div class="b2" data-val></div></div><i class="w r"></i></div><div class="pad"></div></div>`;
+  return `<div class="n${cls}" data-id="${n.id}" data-tip="${n.type}" tabindex="0" role="button" aria-label="${n.type} ${esc(n.tag)}"><div class="lab">${esc(n.tag || "?")}</div><div class="sym"><i class="w l"></i><svg viewBox="0 0 36 36" aria-hidden="true">${SYM[n.type]}</svg><i class="w r"></i></div><div class="adr">${esc(addrOf(n.tag))}</div></div>`;
+}
+function seriesHTML(arr, main) {
+  let h = "";
+  if (!arr.length) { slots.push({ arr }); const c = sel && sel.type === "slot" && sel.arr === arr ? " selx" : ""; h += `<div class="n slot${c}" data-slot="${slots.length - 1}" tabindex="0" role="button" aria-label="Empty position"><div class="lab"></div><div class="sym"><i class="w l"></i><span class="plus">+</span><i class="w r"></i></div><div class="adr">empty</div></div>`; }
+  const endCoil = main && arr.length && isCoil(arr[arr.length - 1]);
+  arr.forEach((n, i) => { byId.set(n.id, { node: n, arr, idx: i }); if (endCoil && i === arr.length - 1) h += `<i class="fill" data-src="${i ? arr[i - 1].id : "rail"}"></i>`; h += nodeHTML(n); });
+  if (!endCoil) h += `<i class="fill" data-src="${arr.length ? arr[arr.length - 1].id : "none"}"></i>`;
+  return `<div class="series">${h}</div>`;
+}
+function renderLadder() {
+  showTip(null); byId = new Map(); slots = []; MEM = new Map();
+  let k = 0; for (const t of plainTags()) if (!ioOf(t)) { MEM.set(t, style === "logix" ? `B3:${Math.floor(k / 16)}/${k % 16}` : "memory bit"); k++; }
+  $("#ladder").innerHTML = `<div class="rungs">` + (prog.rungs.map((r, i) => `<div class="rung"><button class="rnum${sel && sel.type === "rung" && sel.rung === r ? " selx" : ""}" data-rung="${i}" aria-label="Select rung ${i + 1}">${i + 1}</button><div class="rwrap">${r.comment ? `<div class="rcom">${esc(r.comment)}</div>` : ""}<div class="rbody">${seriesHTML(r.items, true)}</div></div></div>`).join("") || `<p class="hint">No rungs yet. Click <b>New Rung</b> or any instruction to begin.</p>`) + `</div>`;
+  for (const [id, e] of byId) { e.el = $(`#ladder [data-id="${id}"]`); e.val = e.el && e.el.querySelector(":scope > .bxr [data-val]"); }
+  const tags = new Set([...IO.ins, ...IO.outs].map(x => x.tag)); walk(n => { if (n.tag) tags.add(n.tag); if (isBlock(n)) { tags.add(n.name + ".Q"); if (n.type === "CTUD") tags.add(n.name + ".QD"); } });
+  $("#taglist").innerHTML = [...tags].map(t => `<option value="${esc(t)}">`).join("");
+}
+$("#ladder").addEventListener("click", e => {
+  const s = e.target.closest("[data-slot]"), n = e.target.closest(".n[data-id]:not(.par)"), r = e.target.closest("[data-rung]");
+  if (s) sel = { type: "slot", arr: slots[+s.dataset.slot].arr }; else if (n) sel = { type: "node", id: n.dataset.id }; else if (r) sel = { type: "rung", rung: prog.rungs[+r.dataset.rung] }; else return;
+  renderLadder(); renderInsp(); paint(false);
+});
+$("#ladder").addEventListener("keydown", e => { if ((e.key === "Enter" || e.key === " ") && e.target.matches(".n")) { e.preventDefault(); e.target.click(); } if ((e.key === "Delete" || e.key === "Backspace") && e.target.matches(".n,.rnum")) { e.preventDefault(); del(); } });
+
+/* ================= palette and editing ================= */
+const ICON = t => { if (SYM[t]) return `<svg viewBox="0 0 36 36" aria-hidden="true">${SYM[t].replace(/class="w[lr]"/g, "").replace(/class="sy"/g, "")}</svg>`;
+  if (t === "branch") return `<svg viewBox="0 0 36 36" aria-hidden="true"><path d="M2 10H34M8 10V26H28V10"/></svg>`; if (t === "rung") return `<svg viewBox="0 0 36 36" aria-hidden="true"><path d="M5 5V31M31 5V31M5 18H31"/></svg>`;
+  const lab = t.startsWith("cmp") ? "CMP" : t; return `<svg viewBox="0 0 36 36" aria-hidden="true"><rect x="3" y="8" width="30" height="20"/><text x="18" y="22" text-anchor="middle" style="font-size:${lab.length > 3 ? 8 : 10}px">${lab}</text></svg>`; };
+const PAL = [["Contacts", [["no", "Direct"], ["nc", "Reverse"], ["pos", "Rising"], ["neg", "Falling"]]], ["Coils", [["coil", "Direct"], ["ncoil", "Reverse"], ["set", "Set"], ["reset", "Reset"]]],
+  ["Timers", [["TON", "TON"], ["TOF", "TOF"], ["TP", "TP"]]], ["Counters", [["CTU", "CTU"], ["CTD", "CTD"], ["CTUD", "CTUD"]]],
+  ["Compare", [["cmp=", "="], ["cmp<>", "<>"], ["cmp>", ">"], ["cmp>=", ">="], ["cmp<", "<"], ["cmp<=", "<="]]], ["Structure", [["branch", "Branch"], ["rung", "New Rung"]]]];
+const PALHTML = PAL.map(([g, items]) => `<div class="pg"><span class="pgh">${g}</span><div class="pgb">${items.map(([k, l]) => `<button data-p="${k}" data-tip="${k}">${ICON(k)}<span>${esc(l)}</span></button>`).join("")}</div></div>`).join("");
+$("#pal").innerHTML = PALHTML; $("#pal2").innerHTML = PALHTML;
+const palClick = e => { const b = e.target.closest("[data-p]"); if (!b) return; const p = b.dataset.p; if (p === "rung") addRung(); else if (p === "branch") addBranch(); else insert(make(p)); };
+$("#pal").addEventListener("click", palClick); $("#pal2").addEventListener("click", palClick);
+function freeName(pre) { const used = new Set(); walk(n => { if (n.name) used.add(n.name); }); let i = 1; while (used.has(pre + "_" + i)) i++; return pre + "_" + i; }
+function make(t) {
+  const usedCoil = new Set(); walk(n => { if (isCoil(n)) usedCoil.add(n.tag); });
+  const fout = (IO.outs.find(x => !usedCoil.has(x.tag)) || IO.outs[0]).tag, fin = IO.ins[0].tag;
+  if (CONTACTS.includes(t)) return { id: nid(), type: t, tag: fin };
+  if (COILS.includes(t)) return { id: nid(), type: t, tag: fout };
+  if (TIMERS.includes(t)) return { id: nid(), type: t, name: freeName(t), pt: 3000 };
+  if (t === "CTUD") return { id: nid(), type: t, name: freeName(t), pv: 5, cd: "", reset: "" };
+  if (COUNTERS.includes(t)) return { id: nid(), type: t, name: freeName(t), pv: 5, reset: "" };
+  let a = ""; walk(n => { if (!a && isBlock(n)) a = n.name + (TIMERS.includes(n.type) ? ".ET" : ".CV"); });
+  return { id: nid(), type: "cmp", a, op: t.slice(3), b: "1" };
+}
+function addRung() { const r = { id: nid(), comment: "", items: [] }; const i = sel && sel.type === "rung" ? prog.rungs.indexOf(sel.rung) + 1 : sel && sel.type === "node" && byId.get(sel.id) ? rungIndexOf(byId.get(sel.id).arr) + 1 : prog.rungs.length; prog.rungs.splice(i, 0, r); sel = { type: "slot", arr: r.items }; changed(); }
+function rungIndexOf(arr) { let found = -1; prog.rungs.forEach((r, i) => { if (found >= 0) return; if (r.items === arr) found = i; else { const stack = [r.items]; while (stack.length) { const a = stack.pop(); for (const n of a) if (n.type === "par") for (const b of n.branches) { if (b === arr) found = i; stack.push(b); } } } }); return found < 0 ? prog.rungs.length - 1 : found; }
+function insert(n) {
+  let arr, idx;
+  if (sel && sel.type === "node" && byId.get(sel.id)) { const e = byId.get(sel.id); arr = e.arr; idx = e.idx + 1; }
+  else if (sel && sel.type === "slot") { arr = sel.arr; idx = 0; }
+  else { let r = sel && sel.type === "rung" ? sel.rung : prog.rungs[prog.rungs.length - 1]; if (!r) { r = { id: nid(), comment: "", items: [] }; prog.rungs.push(r); } arr = r.items; idx = arr.length; if (idx && isCoil(arr[idx - 1]) && !isCoil(n)) idx--; }
+  arr.splice(idx, 0, n); sel = { type: "node", id: n.id }; changed();
+}
+function parOf(arr) { let res = null; walk((n, a, i) => { if (n.type === "par") { const b = n.branches.indexOf(arr); if (b >= 0) res = { par: n, holder: a, at: i, b }; } }); return res; }
+function addBranch() {
+  if (!sel || sel.type === "rung") { toast("Select an instruction first, then click Branch to add a parallel path under it."); return; }
+  const arr = sel.type === "node" ? byId.get(sel.id).arr : sel.arr, p = parOf(arr); let nb = [];
+  if (p) p.par.branches.splice(p.b + 1, 0, nb);
+  else if (sel.type === "node") { const e = byId.get(sel.id); e.arr[e.idx] = { id: nid(), type: "par", branches: [[e.node], nb] }; }
+  else return;
+  sel = { type: "slot", arr: nb }; changed();
+}
+function selPar() { const arr = sel.type === "node" ? byId.get(sel.id).arr : sel.arr, p = parOf(arr); if (!p) return; sel = { type: "node", id: p.par.id }; renderLadder(); renderInsp(); paint(false); }
+function del() {
+  if (!sel) return;
+  if (sel.type === "rung") { prog.rungs.splice(prog.rungs.indexOf(sel.rung), 1); sel = null; }
+  else if (sel.type === "node") { const e = byId.get(sel.id); if (!e) return; e.arr.splice(e.idx, 1); sel = e.arr.length ? { type: "node", id: e.arr[Math.max(0, e.idx - 1)].id } : { type: "slot", arr: e.arr }; if (sel.type === "node" && e.arr[Math.max(0, e.idx - 1)].type === "par") sel = null; }
+  else { const p = parOf(sel.arr); if (p) { p.par.branches.splice(p.b, 1); if (p.par.branches.length === 1) p.holder.splice(p.at, 1, ...p.par.branches[0]); } else { const i = prog.rungs.findIndex(r => r.items === sel.arr); if (i >= 0) prog.rungs.splice(i, 1); } sel = null; }
+  changed();
+}
+function move(d) {
+  if (!sel) return;
+  if (sel.type === "rung") { const i = prog.rungs.indexOf(sel.rung), j = i + d; if (j < 0 || j >= prog.rungs.length) return; prog.rungs.splice(i, 1); prog.rungs.splice(j, 0, sel.rung); }
+  else if (sel.type === "node") { const e = byId.get(sel.id), j = e.idx + d; if (j < 0 || j >= e.arr.length) return; e.arr.splice(e.idx, 1); e.arr.splice(j, 0, e.node); } else return;
+  changed();
+}
+const TYPE_NAMES = { no: "Direct Contact", nc: "Reverse Contact", pos: "Rising Edge Contact", neg: "Falling Edge Contact", coil: "Direct Coil", ncoil: "Reverse Coil", set: "Set Coil", reset: "Reset Coil", TON: "TON On-Delay Timer", TOF: "TOF Off-Delay Timer", TP: "TP Pulse Timer", CTU: "CTU Count Up", CTD: "CTD Count Down", CTUD: "CTUD Count Up/Down", cmp: "Compare" };
+function renderInsp() {
+  const box = $("#insp"); let h = "";
+  if (!sel) h = `<p class="hint">Nothing selected. Click an instruction, an empty <b>+</b> position or a rung number to edit it here.</p>`;
+  else if (sel.type === "rung") h = `<h2>Rung ${prog.rungs.indexOf(sel.rung) + 1}</h2><div class="fields"><label>Rung comment<input type="text" id="f-com" value="${esc(sel.rung.comment || "")}" style="width:340px" autocomplete="off"></label></div><div class="rowbtn"><button data-a="up">Move up</button><button data-a="down">Move down</button><button data-a="del">Delete rung</button></div>`;
+  else if (sel.type === "slot") h = `<h2>Empty position</h2><p class="hint">Click an instruction in the palette to place it here.</p><div class="rowbtn"><button data-a="del">${parOf(sel.arr) ? "Delete this branch" : "Delete rung"}</button>${parOf(sel.arr) ? `<button data-a="selpar">Select whole branch</button>` : ""}</div>`;
+  else { const e = byId.get(sel.id); if (!e) { box.innerHTML = ""; return; } const n = e.node; let f = "";
+    if (n.type === "par") { box.innerHTML = `<h2>Parallel branch (whole group)</h2><p class="hint">This selects every path of the branch together. Click an instruction in the palette to add it after the branch.</p><div class="rowbtn"><button data-a="up">Move left</button><button data-a="down">Move right</button><button data-a="del">Delete whole branch</button></div>`; return; }
+    const kinds = CONTACTS.includes(n.type) ? CONTACTS : COILS.includes(n.type) ? COILS : TIMERS.includes(n.type) ? TIMERS : COUNTERS.includes(n.type) ? COUNTERS : null;
+    if (kinds) f += `<label>Instruction<select id="f-type">${kinds.map(k => `<option value="${k}" ${k === n.type ? "selected" : ""}>${TYPE_NAMES[k]}</option>`).join("")}</select></label>`;
+    if ("tag" in n) f += `<label>Tag<input type="text" id="f-tag" list="taglist" value="${esc(n.tag)}" autocomplete="off"></label>`;
+    if (isBlock(n)) f += `<label>Name<input type="text" id="f-name" value="${esc(n.name)}" autocomplete="off"></label>`;
+    if (TIMERS.includes(n.type)) f += `<label>PT (seconds)<input type="number" id="f-pt" min="0.1" step="0.1" value="${n.pt / 1000}"></label>`;
+    if (COUNTERS.includes(n.type)) f += `<label>PV (preset)<input type="number" id="f-pv" min="1" step="1" value="${n.pv}"></label>`;
+    if (n.type === "CTUD") f += `<label>CD (count down) tag<input type="text" id="f-cd" list="taglist" value="${esc(n.cd || "")}" autocomplete="off"></label>`;
+    if (COUNTERS.includes(n.type)) f += `<label>${n.type === "CTD" ? "LOAD" : "RESET"} tag<input type="text" id="f-reset" list="taglist" value="${esc(n.reset || "")}" autocomplete="off"></label>`;
+    if (n.type === "cmp") f += `<label>Value A<input type="text" id="f-a" value="${esc(n.a)}" autocomplete="off"></label><label>Compare<select id="f-op">${["=", "<>", ">", ">=", "<", "<="].map(o => `<option ${o === n.op ? "selected" : ""}>${esc(o)}</option>`).join("")}</select></label><label>Value B<input type="text" id="f-b" value="${esc(n.b)}" autocomplete="off"></label>`;
+    h = `<h2>${TYPE_NAMES[n.type]}</h2><p class="hint">${esc(TIPS[tipKey(n)].d)}${"tag" in n ? " Pick a tag from the list, or type a new name to make a memory bit." : ""}</p><div class="fields">${f}</div><div class="rowbtn"><button data-a="up">Move left</button><button data-a="down">Move right</button><button data-a="branch">Branch</button>${parOf(e.arr) ? `<button data-a="selpar">Select whole branch</button>` : ""}<button data-a="del">Delete</button></div>`; }
+  box.innerHTML = h;
+}
+$("#insp").addEventListener("click", e => { const a = e.target.closest("[data-a]"); if (!a) return; ({ up: () => move(-1), down: () => move(1), del, branch: addBranch, selpar: selPar })[a.dataset.a](); });
+$("#insp").addEventListener("change", e => {
+  if (e.target.id === "f-com" && sel && sel.type === "rung") { sel.rung.comment = e.target.value.trim(); changed(); return; }
+  if (!sel || sel.type !== "node") return; const n = byId.get(sel.id).node, v = e.target.value.trim(), clean = s => s.replace(/[^\w.]/g, "_");
+  switch (e.target.id) {
+    case "f-type": n.type = v; break; case "f-tag": n.tag = clean(v); break; case "f-name": if (v) n.name = clean(v).replace(/\./g, "_"); break;
+    case "f-pt": n.pt = Math.max(100, Math.round(parseFloat(v) * 1000) || 1000); break; case "f-pv": n.pv = Math.max(1, parseInt(v) || 1); break; case "f-reset": n.reset = clean(v); break; case "f-cd": n.cd = clean(v); break;
+    case "f-a": n.a = clean(v); break; case "f-b": n.b = clean(v); break; case "f-op": n.op = v; break; default: return;
+  }
+  if (e.target.id === "f-type" && n.type === "CTUD" && n.cd === undefined) n.cd = "";
+  changed();
+});
+function validate() {
+  const w = [], coils = {};
+  prog.rungs.forEach((r, i) => {
+    const k = i + 1; if (!r.items.length) { w.push(`Rung ${k} is empty.`); return; }
+    const last = r.items[r.items.length - 1]; if (!isCoil(last) && !isBlock(last)) w.push(`Rung ${k} has no output. End it with a coil, timer or counter.`);
+    r.items.forEach((n, j) => { if (isCoil(n) && j < r.items.length - 1) w.push(`Rung ${k}: a coil should be the last instruction on the rung.`); });
+  });
+  walk((n, arr, i, r) => { const k = prog.rungs.indexOf(r) + 1;
+    if (n.type === "par" && n.branches.some(b => !b.length)) w.push(`Rung ${k} has an empty branch. It passes no power until you add a contact.`);
+    if ("tag" in n && !n.tag) w.push(`Rung ${k}: an instruction has no tag.`);
+    if (n.type === "coil" || n.type === "ncoil") { if (coils[n.tag]) w.push(`${n.tag} is driven by a coil on rung ${coils[n.tag]} and rung ${k}. The last rung wins, so use one coil per output.`); else coils[n.tag] = k; }
+    if (isCoil(n)) { const x = ioOf(n.tag); if (x && x.dir === "in") w.push(`Rung ${k}: ${n.tag} is an input. A coil should write to an output or a memory bit.`); }
+  });
+  $("#warn").innerHTML = [...new Set(w)].map(x => `<li>${esc(x)}</li>`).join("");
+}
+
+/* ================= JPG export (drawn on a canvas) ================= */
+const MONO = "Consolas, 'Courier New', monospace", SANS = "Arial, Helvetica, sans-serif", INK = "#000000", GREEN = "#0b8a3e";
+const SYMP = { no: "M11 5V31M25 5V31", nc: "M11 5V31M25 5V31M7 30L29 6", pos: "M9 5V31M27 5V31", neg: "M9 5V31M27 5V31", coil: "M13 5Q1 18 13 31M23 5Q35 18 23 31" };
+const CELL = 100, BLKW = 150;
+function cm(n) {
+  if (n.type === "par") { const bs = n.branches.map(sm); let h = 0; bs.forEach(b => h += b.h); return { w: Math.max(...bs.map(b => b.w)), h, mid: bs[0].mid, bs }; }
+  if (n.type === "cmp") return { w: BLKW, h: 22 + 28 + 14, mid: 36 };
+  if (isBlock(n)) return { w: BLKW, h: 22 + 28 + 18 * blkRows(n).length + 10, mid: 36 };
+  return { w: CELL, h: 70, mid: 34 };
+}
+function sm(items) { if (!items.length) return { w: 60, h: 70, mid: 34 }; let w = 0, mid = 0, below = 0; for (const n of items) { const m = cm(n); w += m.w; mid = Math.max(mid, m.mid); below = Math.max(below, m.h - m.mid); } return { w, mid, h: mid + below }; }
+function jpgBuild(opts) {
+  const live = !!opts.live, SC = 2, MX = 50, flow = n => (live && S.flow[n.id]) || [false, false];
+  const wire = (g, x1, x2, y, on) => { if (x2 <= x1) return; g.beginPath(); g.strokeStyle = live && on ? GREEN : INK; g.lineWidth = live && on ? 4 : 2.5; g.moveTo(x1, y); g.lineTo(x2, y); g.stroke(); };
+  const txt = (g, s, x, y, font, align, col) => { g.font = font; g.textAlign = align || "left"; g.fillStyle = col || INK; g.fillText(s, x, y); };
+  const cut = (s, n) => s.length > n ? s.slice(0, n - 1) + "…" : s;
+  function drawSimple(g, n, x, y) {
+    const ly = y + 34, f = flow(n), on = live && nodeOn(n), lx = isCoil(n) ? 7 : (n.type === "pos" || n.type === "neg") ? 9 : 11, rx = 36 - lx;
+    txt(g, cut(n.tag || "?", 13), x + 50, y + 13, "bold 12px " + MONO, "center");
+    wire(g, x, x + 32 + lx, ly, f[0]); wire(g, x + 32 + rx, x + CELL, ly, f[1]);
+    g.save(); g.translate(x + 32, y + 16); g.strokeStyle = on ? GREEN : INK; g.lineWidth = 2.5; g.lineCap = "butt";
+    g.stroke(new Path2D(SYMP[isCoil(n) ? "coil" : n.type]));
+    const letter = { pos: "P", neg: "N", ncoil: "/", set: "S", reset: "R" }[n.type]; if (letter) { g.font = "bold 11px " + MONO; g.textAlign = "center"; g.fillStyle = on ? GREEN : INK; g.fillText(letter, 18, 22); }
+    g.restore();
+    txt(g, cut(addrOf(n.tag), 16), x + 50, y + 66, "10px " + MONO, "center");
+  }
+  function drawBlock(g, n, x, y) {
+    const f = flow(n), on = live && nodeOn(n), bx = x + 10, bw = 130, by = y + 22, ly = y + 36, rows = n.type === "cmp" ? [] : blkRows(n), bh = n.type === "cmp" ? 28 : 28 + 18 * rows.length;
+    txt(g, cut(n.type === "cmp" ? "CMP" : n.name, 15), x + 75, y + 13, "bold 12px " + MONO, "center");
+    wire(g, x, bx, ly, f[0]); wire(g, bx + bw, x + BLKW, ly, f[1]);
+    g.strokeStyle = on ? GREEN : INK; g.lineWidth = 2.5; g.strokeRect(bx, by, bw, bh);
+    if (n.type === "cmp") txt(g, cut(`${n.a || "?"} ${n.op} ${n.b}`, 17), bx + bw / 2, by + 18, "bold 12px " + MONO, "center");
+    else { txt(g, inPin(n), bx + 6, by + 18, "11px " + MONO, "left"); txt(g, n.type, bx + bw / 2, by + 18, "bold 12px " + MONO, "center"); txt(g, "Q", bx + bw - 6, by + 18, "11px " + MONO, "right");
+      rows.forEach((r, i) => txt(g, cut(r, 17), bx + 6, by + 28 + 13 + i * 18, "11px " + MONO, "left")); }
+  }
+  function drawSeries(g, items, x, y, m, W) {
+    const ly = y + m.mid; let cx = x, last = true;
+    if (!items.length) { wire(g, x, x + W, ly, false); return; }
+    items.forEach(n => { const c = cm(n), ny = y + (m.mid - c.mid); drawNode(g, n, cx, ny, c); cx += c.w; last = flow(n)[1]; });
+    wire(g, cx, x + W, ly, last);
+  }
+  function drawNode(g, n, x, y, c) {
+    if (n.type === "par") {
+      let oy = 0; const f = flow(n), ys = [];
+      c.bs.forEach((b, i) => { drawSeries(g, n.branches[i], x, y + oy, b, c.w); ys.push(y + oy + b.mid); oy += b.h; });
+      g.lineWidth = 2.5; g.lineCap = "butt";
+      g.strokeStyle = live && f[0] ? GREEN : INK; g.beginPath(); g.moveTo(x, ys[0]); g.lineTo(x, ys[ys.length - 1]); g.stroke();
+      g.strokeStyle = live && f[1] ? GREEN : INK; g.beginPath(); g.moveTo(x + c.w, ys[0]); g.lineTo(x + c.w, ys[ys.length - 1]); g.stroke();
+    } else if (n.type === "cmp" || isBlock(n)) drawBlock(g, n, x, y); else drawSimple(g, n, x, y);
+  }
+  // layout
+  const R = prog.rungs.map(r => ({ r, m: sm(r.items), com: r.comment ? 22 : 0 }));
+  let RW = 760; R.forEach(o => RW = Math.max(RW, o.m.w + 40));
+  const rows = opts.table ? tagRows(live) : [], W = RW + MX * 2 + 30, HEAD = 96, RUNG_GAP = 22;
+  const rungsH = R.reduce((a, o) => a + o.com + o.m.h + RUNG_GAP, 0) || 60, tableH = rows.length ? 40 + (rows.length + 1) * 24 : 0, H = HEAD + rungsH + tableH + 50;
+  const cv = document.createElement("canvas"); cv.width = W * SC; cv.height = H * SC; const g = cv.getContext("2d"); g.scale(SC, SC);
+  g.fillStyle = "#fff"; g.fillRect(0, 0, W, H); g.textBaseline = "alphabetic"; g.lineJoin = "miter";
+  txt(g, opts.title || "Ladder program", MX, 36, "bold 24px " + SANS);
+  const d = new Date(), ds = d.toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric" });
+  txt(g, `${opts.name ? "Name: " + opts.name + "     " : ""}Date: ${ds}     Addresses: ${style === "micro800" ? "Micro800" : "MicroLogix / SLC"}${live ? "     (live power shown in green)" : ""}`, MX, 62, "14px " + SANS);
+  g.strokeStyle = INK; g.lineWidth = 1.5; g.beginPath(); g.moveTo(MX, 76); g.lineTo(W - MX, 76); g.stroke();
+  let y = HEAD; const x0 = MX + 30;
+  if (!R.length) txt(g, "(no rungs)", x0, y + 20, "14px " + SANS);
+  R.forEach((o, i) => {
+    if (o.r.comment) txt(g, o.r.comment, x0 + 8, y + 14, "italic 13px " + SANS); const top = y + o.com, items = o.r.items;
+    txt(g, String(i + 1), x0 - 14, top + o.m.mid + 4, "bold 13px " + MONO, "right");
+    const end = items.length && (isCoil(items[items.length - 1]) || isBlock(items[items.length - 1])), ly = top + o.m.mid;
+    g.strokeStyle = live ? GREEN : INK; g.lineWidth = 4;
+    g.beginPath(); g.moveTo(x0, top + 2); g.lineTo(x0, top + o.m.h - 2); g.stroke(); g.beginPath(); g.moveTo(x0 + RW, top + 2); g.lineTo(x0 + RW, top + o.m.h - 2); g.stroke();
+    if (end) { const head = items.slice(0, -1), lastN = items[items.length - 1], lc = cm(lastN), hm = sm(head), hw = head.length ? hm.w : 0;
+      if (head.length) drawSeries(g, head, x0, top + (o.m.mid - hm.mid), { w: hw, mid: hm.mid, h: hm.h }, hw);
+      const lastX = x0 + RW - lc.w, prevOn = head.length ? flow(head[head.length - 1])[1] : true; wire(g, x0 + hw, lastX, ly, prevOn);
+      drawNode(g, lastN, lastX, top + (o.m.mid - lc.mid), lc);
+    } else { drawSeries(g, items, x0, top, o.m, RW); }
+    y += o.com + o.m.h + RUNG_GAP;
+  });
+  if (rows.length) {
+    let ty = HEAD + rungsH + 10; txt(g, "Tag table", MX, ty + 10, "bold 15px " + SANS); ty += 20;
+    const tw = W - MX * 2, cols = (live ? [0, .17, .35, .5, .7] : [0, .25, .5, .75]).map(f => MX + f * tw);
+    const head = live ? ["Tag", "Address", "Type", "Details", "Now"] : ["Tag", "Address", "Type", "Details"];
+    g.strokeStyle = INK; g.lineWidth = 1; g.strokeRect(MX, ty, tw, (rows.length + 1) * 24);
+    [head, ...rows].forEach((r, i) => { const yy = ty + i * 24; if (i) { g.beginPath(); g.moveTo(MX, yy); g.lineTo(MX + tw, yy); g.stroke(); }
+      r.forEach((c, j) => txt(g, cut(String(c), j === 3 ? 30 : j === 4 ? 36 : 24), cols[j] + 8, yy + 16, (i ? "12px " : "bold 12px ") + (j < 2 ? MONO : SANS))); });
+    cols.slice(1).forEach(cx => { g.beginPath(); g.moveTo(cx, ty); g.lineTo(cx, ty + (rows.length + 1) * 24); g.stroke(); });
+  }
+  txt(g, "Made with the O.O PLC Trainer (Free Build)", W - MX, H - 18, "11px " + SANS, "right");
+  return cv;
+}
+function tagRows(live) {
+  const rows = [], vs = t => live ? [getBool(S, t) ? "TRUE" : "FALSE"] : [];
+  plainTags().forEach(t => { const x = ioOf(t); rows.push([t, x ? x.addr : (MEM.get(t) || "memory bit"), x ? (x.dir === "in" ? "Input" : "Output") : "Memory bit", x && x.dir === "in" ? KINDS[x.kind] : "", ...vs(t)]); });
+  walk(n => { if (isBlock(n)) { const b = S.blocks[n.name] || { et: 0, cv: 0 }; rows.push([n.name, style === "logix" ? (TIMERS.includes(n.type) ? "T4:" : "C5:") + rows.filter(r => /Timer|Counter/.test(r[2])).length : "variable", (TIMERS.includes(n.type) ? "Timer " : "Counter ") + n.type, TIMERS.includes(n.type) ? `PT ${n.pt / 1000} s` : `PV ${n.pv}`, ...(live ? [TIMERS.includes(n.type) ? `ET ${(b.et / 1000).toFixed(1)} s, Q ${b.q ? "TRUE" : "FALSE"}` : `CV ${b.cv}, Q ${b.q ? "TRUE" : "FALSE"}`] : [])]); } });
+  return rows;
+}
+const dlg = $("#dlg-exp");
+$("#b-exp").addEventListener("click", () => { try { $("#x-name").value = localStorage.getItem(KEY + "-name") || $("#x-name").value; } catch (e) {} $("#x-dl").hidden = true; $("#expimg").hidden = true; dlg.showModal(); });
+$("#x-close").addEventListener("click", () => dlg.close());
+$("#x-make").addEventListener("click", () => {
+  const opts = { name: $("#x-name").value.trim(), title: $("#x-title").value.trim() || "Ladder program", table: $("#x-table").checked, live: $("#x-live").checked };
+  try { localStorage.setItem(KEY + "-name", opts.name); } catch (e) {}
+  const cv = jpgBuild(opts);
+  cv.toBlob(b => { if (!b) { toast("Could not create the image. Try a smaller program."); return; } const url = URL.createObjectURL(b), a = $("#x-dl");
+    if (a.dataset.url) URL.revokeObjectURL(a.dataset.url); a.dataset.url = url; a.href = url; a.download = (opts.title.replace(/[^\w-]+/g, "_") || "ladder") + ".jpg"; a.hidden = false; const im = $("#expimg"); im.src = url; im.hidden = false; }, "image/jpeg", 0.93);
+});
+$("#x-dl").addEventListener("click", () => setTimeout(() => toast("JPG downloaded."), 100));
+
+/* ================= file save/load, new, settings ================= */
+function applySnapshot(d) {
+  if (!d || !Array.isArray(d.rungs)) throw 0;
+  const base = defaultIO(); IO = { ins: base.ins.map((x, i) => Object.assign(x, d.ins && d.ins[i] && d.ins[i].tag ? { tag: cleanTag(d.ins[i].tag) || x.tag, kind: KINDS[d.ins[i].kind] ? d.ins[i].kind : x.kind } : {})), outs: base.outs.map((x, i) => d.outs && d.outs[i] && d.outs[i].tag ? { tag: cleanTag(d.outs[i].tag) || x.tag } : x) };
+  style = d.style === "logix" ? "logix" : "micro800"; $("#s-style").value = style; prog = stamp(d.rungs); sel = null; resetPLC(); renderIO(); changed();
+}
+$("#b-save").addEventListener("click", () => {
+  const b = new Blob([JSON.stringify(snapshot(), null, 1)], { type: "application/json" }), a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = "ladder-program.json"; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); toast("Program file downloaded.");
+});
+$("#b-load").addEventListener("click", () => $("#f-load").click());
+$("#f-load").addEventListener("change", e => { const f = e.target.files[0]; if (!f) return; const r = new FileReader();
+  r.onload = () => { try { applySnapshot(JSON.parse(r.result)); toast("Program loaded."); } catch (x) { toast("That file is not a saved ladder program."); } }; r.readAsText(f); e.target.value = ""; });
+let newT = null;
+$("#b-new").addEventListener("click", e => { const b = e.currentTarget; if (!newT) { b.textContent = "Click again to clear"; b.setAttribute("aria-pressed", "true"); newT = setTimeout(() => { newT = null; b.textContent = "New"; b.setAttribute("aria-pressed", "false"); }, 3000); return; }
+  clearTimeout(newT); newT = null; b.textContent = "New"; b.setAttribute("aria-pressed", "false"); prog = stamp([{ items: [] }]); sel = null; resetPLC(); renderIO(); changed(); });
+$("#s-style").addEventListener("change", e => { style = e.target.value; renderIO(); changed(); });
+$("#b-theme").addEventListener("click", e => { const d = document.documentElement, dark = d.dataset.theme === "dark" || (!d.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches); d.dataset.theme = dark ? "light" : "dark"; e.currentTarget.setAttribute("aria-pressed", !dark); e.currentTarget.textContent = dark ? "Dark mode" : "Light mode"; try { localStorage.setItem(KEY + "-theme", d.dataset.theme); } catch (x) {} drawTrace(); });
+$("#b-run").addEventListener("click", () => { running = !running; $("#b-run").textContent = running ? "Pause" : "Run"; $("#b-run").classList.toggle("primary", running); acc = 0; });
+$("#b-step").addEventListener("click", () => { if (running) $("#b-run").click(); tickOnce(); paint(true); });
+$("#b-reset").addEventListener("click", () => { resetPLC(); renderIO(); refreshTrace(); tickOnce(false); paint(true); });
+window.addEventListener("resize", () => drawTrace());
+
+/* ================= boot ================= */
+(function boot() {
+  try { const th = localStorage.getItem(KEY + "-theme"); if (th) { document.documentElement.dataset.theme = th; $("#b-theme").setAttribute("aria-pressed", th === "dark"); $("#b-theme").textContent = th === "dark" ? "Light mode" : "Dark mode"; } } catch (e) {}
+  let d = null; try { d = JSON.parse(localStorage.getItem(KEY)); } catch (e) {}
+  try { if (d) applySnapshot(d); else throw 0; } catch (e) { IO = defaultIO(); style = "micro800"; prog = stamp([{ items: [] }]); resetPLC(); renderIO(); changed(); }
+  requestAnimationFrame(t => { lastT = t; requestAnimationFrame(frame); });
+})();
+(function () { const el = document.getElementById("intro"); if (!el) return; let gone = false;
+  const close = () => { if (gone) return; gone = true; el.style.animation = "introOut .35s ease forwards"; setTimeout(() => el.remove(), 400); };
+  el.addEventListener("click", close); el.addEventListener("keydown", close);
+  el.addEventListener("animationend", e => { if (e.target === el && e.animationName === "introOut") { gone = true; el.remove(); } });
+  setTimeout(close, 4500); try { el.focus({ preventScroll: true }); } catch (e) {} })();
+</script>
+</body>
+</html>
