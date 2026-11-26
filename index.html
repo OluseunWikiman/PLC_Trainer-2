@@ -130,6 +130,61 @@ td.t{color:var(--power);font-weight:600}
 #tip b{display:block;font-size:13.5px;margin-bottom:1px}
 #tip .ab{display:block;font:600 11.5px var(--mono);margin-bottom:4px}
 #toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:8px 14px;border-radius:6px;font-weight:600;z-index:310;max-width:90vw}
+/* drag and drop */
+.n[data-id]:not(.par){cursor:grab}
+body.dragging,body.dragging *{cursor:grabbing!important;user-select:none}
+body.dragging-bh,body.dragging-bh *{cursor:ew-resize!important;user-select:none}
+#ddghost{position:fixed;z-index:500;pointer-events:none;background:var(--fg);color:var(--bg);font:700 12px var(--mono);padding:4px 9px;border-radius:5px;opacity:.92}
+.dd-b{box-shadow:inset 4px 0 0 var(--sel)}
+.dd-a{box-shadow:inset -4px 0 0 var(--sel)}
+.dd-s{outline:2px solid var(--sel);outline-offset:-2px}
+.fill.dd-x{outline:3px solid var(--sel)}
+.rbody.dd-r,#ladder.dd-r{outline:2px solid var(--sel);outline-offset:1px}
+.n.par{position:relative}
+.bh{position:absolute;top:32px;width:16px;height:16px;border-radius:50%;background:var(--bg);border:2.5px solid var(--sel);cursor:ew-resize;z-index:2;display:none;touch-action:none}
+.bh.l{left:-9px}.bh.r{right:-9px}
+.n.par:hover>.bh,.n.par.selx>.bh{display:block}
+/* tabs + HMI */
+.tabs{display:flex;gap:6px}
+.tabs button{padding:7px 18px;font-size:14px}
+.tabs button[aria-selected="true"]{background:var(--fg);color:var(--bg)}
+#hm-wrap{position:relative;width:100%;overflow:hidden}
+#hm-stage{position:absolute;left:0;top:0;width:800px;height:480px;background:#0b0d10;border:2px solid var(--line);transform-origin:0 0;overflow:hidden;color:#fff;font-family:var(--sans)}
+#hm-stage.edit{background-image:radial-gradient(rgba(255,255,255,.5) 1px,transparent 1.5px);background-size:10px 10px}
+.hw{position:absolute;display:flex;align-items:center;justify-content:center;box-sizing:border-box;font:700 14px var(--sans);color:#fff;user-select:none;-webkit-user-select:none;touch-action:none;outline:none}
+#hm-stage.edit .hw{cursor:move}
+#hm-stage.edit .hw *{pointer-events:none}
+.hw.sel{outline:2px dashed #8cc2ff;outline-offset:3px}
+.hw:focus-visible{outline:2px solid #8cc2ff;outline-offset:3px}
+.hw-pb,.hw-sw{flex-direction:column;border:3px solid #fff;border-radius:10px;background:#1b1f24;cursor:pointer}
+#hm-stage.edit .hw-pb,#hm-stage.edit .hw-sw{cursor:move}
+.hw-sw small{font:700 11px var(--sans)}
+.hw-pb.act,.hw-sw.act{background:var(--c);color:#000}
+.hw-lamp{justify-content:flex-start;gap:8px}
+.hw-lamp .lp{border:3px solid #fff;border-radius:50%;background:#1b1f24;flex:none;box-sizing:border-box}
+.hw-lamp.on .lp{background:var(--c);box-shadow:0 0 14px 3px var(--c)}
+.hw-num,.hw-entry{flex-direction:column;border:2px solid #fff;border-radius:6px;background:#000;gap:2px}
+.hw .nl{font:600 12px var(--sans)}
+.hw-num .nv{font:700 24px var(--mono);color:var(--c)}
+.hw-entry .nv2{font:700 16px var(--mono)}
+.hw-entry input{width:84px;font:700 18px var(--mono);background:#000;color:#fff;border:2px solid #fff;border-radius:4px;padding:2px 4px;text-align:right}
+.hw-label{justify-content:flex-start}
+.hw-trend canvas{display:block}
+.hm-empty{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:24px;font:600 15px var(--sans);color:#fff;pointer-events:none}
+.hpal{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.hpal button{padding:5px 10px;font-size:13px}
+#hm-insp{margin-top:10px;border-top:1.5px solid var(--line);padding-top:10px}
+/* learner login */
+#dlg-login{width:min(420px,94vw)}
+.lg-list{display:flex;flex-direction:column;gap:6px;margin:8px 0}
+.lg-list button{text-align:left;font-size:15px;padding:10px 12px}
+.lgf{display:flex;flex-direction:column;gap:3px;font-size:12px;font-weight:600;margin:8px 0}
+.lgf input{font-family:var(--mono);width:240px;max-width:100%}
+.lg-err{font-weight:700;min-height:1.3em;margin:4px 0}
+.lg-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:6px 0}
+.lg-row b{flex:1;min-width:100px}
+#who-bar[hidden]{display:none}
+#who-bar{display:flex;gap:6px;align-items:center;font-size:13px}
 /* dialog */
 dialog{border:2px solid var(--line);border-radius:10px;background:var(--bg);color:var(--fg);padding:16px;width:min(760px,94vw);max-height:92vh;overflow:auto}
 dialog::backdrop{background:rgba(0,0,0,.55)}
@@ -194,6 +249,8 @@ dialog .chk{flex-direction:row;align-items:center;gap:6px;font-weight:600}
   <span class="sep"></span>
   <label style="font-weight:600;font-size:13px">Addresses <select id="s-style" data-tip="ui-style"><option value="micro800">Micro800 (_IO_EM_DI_00)</option><option value="logix">MicroLogix (I:0/0)</option></select></label>
   <button id="b-theme" data-tip="ui-theme" aria-pressed="false">Dark mode</button>
+  <span class="sep"></span>
+  <span id="who-bar" hidden>Learner: <b id="who"></b> <button id="b-out" data-tip="ui-out">Sign out</button></span>
 </div>
 
 <div class="app">
@@ -211,7 +268,8 @@ dialog .chk{flex-direction:row;align-items:center;gap:6px;font-weight:600}
   </div>
 
   <div class="col" id="main">
-    <section class="panel" aria-labelledby="h-l">
+    <div class="tabs" role="tablist" aria-label="Screens"><button role="tab" data-tab="ladder" aria-selected="true">Ladder</button><button role="tab" data-tab="hmi" aria-selected="false">HMI screen</button></div>
+    <section class="panel lad" aria-labelledby="h-l">
       <h2 id="h-l">Ladder program</h2>
       <p class="hint">Hover over any instruction to see its name. Click an instruction below to add it after the selected one, or click an empty <b>+</b> to place it there. Click a rung number to select the whole rung. Green shows where power flows.</p>
       <div class="pal" id="pal" role="toolbar" aria-label="Instructions"></div>
@@ -219,14 +277,21 @@ dialog .chk{flex-direction:row;align-items:center;gap:6px;font-weight:600}
       <div id="insp"></div>
       <ul id="warn"></ul>
     </section>
-    <section class="panel" aria-labelledby="h-t">
+    <section class="panel lad" aria-labelledby="h-t">
       <div class="trh"><h2 id="h-t">Timing chart</h2>
         <label style="font-size:12px;font-weight:600">Window <select id="s-win"><option value="5">5 s</option><option value="10" selected>10 s</option><option value="30">30 s</option></select></label></div>
       <canvas id="trace" aria-label="Timing chart of the tags used in your program"></canvas>
     </section>
-    <section class="panel" aria-labelledby="h-w">
+    <section class="panel lad" aria-labelledby="h-w">
       <h2 id="h-w">Live values</h2>
       <div class="tw"><table id="watch"></table></div>
+    </section>
+    <section class="panel" id="p-hmi" aria-labelledby="h-hmi" hidden>
+      <div class="trh"><h2 id="h-hmi">HMI screen</h2><button id="hm-mode" class="primary">Run screen</button></div>
+      <p class="hint" id="hm-hint">Edit mode: add objects, drag them, and set their tags. Press Run screen to operate it.</p>
+      <div class="hpal" id="hm-pal" role="toolbar" aria-label="HMI objects"></div>
+      <div id="hm-wrap"><div id="hm-stage" tabindex="-1"></div></div>
+      <div id="hm-insp"></div>
     </section>
   </div>
 
@@ -237,6 +302,8 @@ dialog .chk{flex-direction:row;align-items:center;gap:6px;font-weight:600}
   </section>
 </div>
 
+<dialog id="dlg-login" aria-labelledby="lg-h"><div id="lg-body"></div></dialog>
+
 <dialog id="dlg-exp" aria-labelledby="dx-h">
   <h2 id="dx-h">Export ladder as JPG</h2>
   <div class="fields">
@@ -246,6 +313,7 @@ dialog .chk{flex-direction:row;align-items:center;gap:6px;font-weight:600}
   <div class="fields" style="margin-top:10px">
     <label class="chk"><input type="checkbox" id="x-table" checked> Include the tag table</label>
     <label class="chk"><input type="checkbox" id="x-live"> Show live power (green)</label>
+    <label class="chk"><input type="checkbox" id="x-hmi"> Include the HMI screen</label>
   </div>
   <div class="rowbtn">
     <button id="x-make" class="primary">Create JPG</button>
@@ -276,6 +344,7 @@ function getBool(S, name) {
 function getNum(S, v) {
   v = String(v).trim();
   if (v !== "" && !isNaN(v)) return parseFloat(v);
+  if (typeof S.tags[v] === "number") return S.tags[v];
   const m = v.match(/^(.+)\.(CV|ET|PV|PT)$/);
   if (m) { const b = S.blocks[m[1]]; if (!b) return 0; return m[2] === "CV" ? b.cv : m[2] === "ET" ? b.et / 1000 : m[2] === "PV" ? (b.pv || 0) : (b.pt || 0) / 1000; }
   return getBool(S, v) ? 1 : 0;
@@ -284,6 +353,7 @@ const blk = (S, n) => S.blocks[n.name] || (S.blocks[n.name] = { et: 0, q: false,
 function evalSeries(arr, p, S, dt) { for (const n of arr) p = evalNode(n, p, S, dt); return p; }
 function evalNode(n, p, S, dt) {
   let o = false, b, v;
+  const pt = n.ptTag ? Math.max(0, Math.round(getNum(S, n.ptTag) * 1000)) : n.pt, pv = n.pvTag ? Math.max(1, Math.round(getNum(S, n.pvTag))) : n.pv;
   switch (n.type) {
     case "no": o = p && getBool(S, n.tag); break;
     case "nc": o = p && !getBool(S, n.tag); break;
@@ -296,17 +366,17 @@ function evalNode(n, p, S, dt) {
     case "par": for (const br of n.branches) if (br.length && evalSeries(br, p, S, dt)) o = true; break;
     case "cmp": { const a = getNum(S, n.a), c = getNum(S, n.b);
       o = p && ({ "=": a === c, "<>": a !== c, ">": a > c, ">=": a >= c, "<": a < c, "<=": a <= c })[n.op]; break; }
-    case "TON": b = blk(S, n); b.pt = n.pt; if (p) b.et = Math.min(b.et + dt, n.pt); else b.et = 0; b.q = p && b.et >= n.pt; o = b.q; break;
-    case "TOF": b = blk(S, n); b.pt = n.pt; if (p) { b.q = true; b.et = 0; } else if (b.q) { b.et = Math.min(b.et + dt, n.pt); if (b.et >= n.pt) b.q = false; } o = b.q; break;
-    case "TP": b = blk(S, n); b.pt = n.pt; if (p && !b.prev && !b.run) { b.run = true; b.et = 0; }
-      if (b.run) { b.et = Math.min(b.et + dt, n.pt); if (b.et >= n.pt) b.run = false; } else if (!p) b.et = 0;
+    case "TON": b = blk(S, n); b.pt = pt; if (p) b.et = Math.min(b.et + dt, pt); else b.et = 0; b.q = p && b.et >= pt; o = b.q; break;
+    case "TOF": b = blk(S, n); b.pt = pt; if (p) { b.q = true; b.et = 0; } else if (b.q) { b.et = Math.min(b.et + dt, pt); if (b.et >= pt) b.q = false; } o = b.q; break;
+    case "TP": b = blk(S, n); b.pt = pt; if (p && !b.prev && !b.run) { b.run = true; b.et = 0; }
+      if (b.run) { b.et = Math.min(b.et + dt, pt); if (b.et >= pt) b.run = false; } else if (!p) b.et = 0;
       b.q = b.run; b.prev = p; o = b.q; break;
-    case "CTU": b = blk(S, n); b.pv = n.pv; if (n.reset && getBool(S, n.reset)) b.cv = 0; else if (p && !b.prev) b.cv++; b.prev = p; b.q = b.cv >= n.pv; o = b.q; break;
-    case "CTD": b = blk(S, n); b.pv = n.pv; if (!b.init) { b.cv = n.pv; b.init = true; }
-      if (n.reset && getBool(S, n.reset)) b.cv = n.pv; else if (p && !b.prev && b.cv > 0) b.cv--; b.prev = p; b.q = b.cv <= 0; o = b.q; break;
-    case "CTUD": { b = blk(S, n); b.pv = n.pv; const d = getBool(S, n.cd);
+    case "CTU": b = blk(S, n); b.pv = pv; if (n.reset && getBool(S, n.reset)) b.cv = 0; else if (p && !b.prev) b.cv++; b.prev = p; b.q = b.cv >= pv; o = b.q; break;
+    case "CTD": b = blk(S, n); b.pv = pv; if (!b.init) { b.cv = pv; b.init = true; }
+      if (n.reset && getBool(S, n.reset)) b.cv = pv; else if (p && !b.prev && b.cv > 0) b.cv--; b.prev = p; b.q = b.cv <= 0; o = b.q; break;
+    case "CTUD": { b = blk(S, n); b.pv = pv; const d = getBool(S, n.cd);
       if (n.reset && getBool(S, n.reset)) b.cv = 0; else { if (p && !b.prev) b.cv++; if (d && !b.prevd && b.cv > 0) b.cv--; }
-      b.prev = p; b.prevd = d; b.q = b.cv >= n.pv; b.qd = b.cv <= 0; o = b.q; break; }
+      b.prev = p; b.prevd = d; b.q = b.cv >= pv; b.qd = b.cv <= 0; o = b.q; break; }
   }
   o = !!o; S.flow[n.id] = [p, o]; return o;
 }
@@ -337,6 +407,8 @@ window.__selftest = () => {
   run("edges", [[{ type: "pos", tag: "i" }, { type: "set", tag: "up" }], [{ type: "neg", tag: "i" }, { type: "set", tag: "dn" }], [N("i"), O("hold")]],
     [{ expect: { up: false, dn: false } }, { set: { i: true }, expect: { up: true, dn: false, hold: true } }, { set: { i: false }, expect: { dn: true, hold: false } }]);
   run("compare", [[N("i"), { type: "TON", name: "T1", pt: 2000 }, O("a")], [{ type: "cmp", a: "T1.ET", op: ">=", b: "1" }, O("half")]], [{ set: { i: true }, ms: 600, expect: { half: false } }, { ms: 600, expect: { half: true, a: false } }, { ms: 1000, expect: { a: true } }]);
+  run("PT from tag", [[N("i"), { type: "TON", name: "T1", pt: 9000, ptTag: "sp" }, O("o")]], [{ set: { sp: 1, i: true }, ms: 500, expect: { o: false } }, { ms: 600, expect: { o: true } }, { set: { sp: 3 }, expect: { o: false } }]);
+  run("PV from tag", [[N("i"), { type: "CTU", name: "C1", pv: 9, pvTag: "pv" }, O("o")]], [{ set: { pv: 2 } }, ...pl("i", 1), { expect: { o: false } }, ...pl("i", 1), { expect: { o: true } }]);
   return bad;
 };
 
@@ -362,13 +434,22 @@ const TIPS = {
   "cmp<": cmpTip("Less Than ( < )", "Allen-Bradley: LES", "A is less than B."), "cmp<=": cmpTip("Less or Equal ( <= )", "Allen-Bradley: LEQ", "A is less than or equal to B."),
   branch: { n: "Branch (parallel path)", ab: "Allen-Bradley: Branch", d: "Adds a second path in parallel, which means OR: power passes if either path passes. Select an instruction first." },
   rung: { n: "New Rung", ab: "", d: "Adds an empty rung below the selected one." },
+  bh: { n: "Branch handle", ab: "", d: "Drag left or right to make the branch cover more or fewer instructions." },
   "ui-run": { n: "Run / Pause", ab: "", d: "Pauses or resumes the PLC scan. While paused you can still edit and step." },
   "ui-step": { n: "Step 1 scan", ab: "", d: "Runs exactly one scan while paused, so you can watch the logic change scan by scan." },
   "ui-reset": { n: "Reset PLC", ab: "", d: "Clears all outputs, memory bits, timers and counters. Your program is kept." },
   "ui-export": { n: "Export JPG", ab: "", d: "Creates a picture of your ladder program that you can save and hand in." },
   "ui-save": { n: "Save file", ab: "", d: "Downloads your program as a file you can open again later or share." },
   "ui-load": { n: "Load file", ab: "", d: "Opens a program file that you saved earlier." },
-  "ui-new": { n: "New program", ab: "", d: "Clears the ladder and starts again. Click twice to confirm." },
+  "ui-out": { n: "Sign out", ab: "", d: "Saves your work and returns to the learner list so the next person can sign in." },
+  "ui-new": { n: "New program", ab: "", d: "Clears the ladder and the HMI screen and starts again. Click twice to confirm." },
+  "hm-pb": { n: "Push button", ab: "HMI", d: "Operator button. Its bit is TRUE only while the button is held. Use the bit in a ladder contact." },
+  "hm-sw": { n: "Switch", ab: "HMI", d: "Operator switch. Click to turn its bit on or off." },
+  "hm-lamp": { n: "Lamp", ab: "HMI", d: "Indicator light. Lights when its tag is TRUE." },
+  "hm-num": { n: "Number display", ab: "HMI", d: "Shows a number such as a timer's elapsed time or a counter's count." },
+  "hm-entry": { n: "Number entry", ab: "HMI", d: "The operator types a number. Use its tag as a timer or counter preset, or in a compare." },
+  "hm-label": { n: "Label", ab: "HMI", d: "Plain text for titles and notes on the screen." },
+  "hm-trend": { n: "Trend", ab: "HMI", d: "A live chart of one or two tags." },
   "ui-style": { n: "Address style", ab: "", d: "Shows addresses the Micro800 way (_IO_EM_DI_00) or the MicroLogix and SLC way (I:0/0)." },
   "ui-theme": { n: "Dark mode", ab: "", d: "Switches between a light and a dark screen." },
 };
@@ -406,11 +487,11 @@ const restInputs = () => Object.fromEntries(IO.ins.map(x => [x.tag, x.kind === "
 const cleanTag = s => s.trim().replace(/[^\w]/g, "_");
 
 /* ================= app state ================= */
-let prog, S, phys, lastInp = {}, running = true, scans = 0, sel = null, byId = new Map(), slots = [], MEM = new Map();
-const KEY = "plc-freebuild-v1";
-function save() { try { localStorage.setItem(KEY, JSON.stringify(snapshot())); } catch (e) {} }
-const snapshot = () => ({ app: "oluseun-plc-freebuild", v: 1, style, ins: IO.ins, outs: IO.outs, rungs: strip(prog) });
-function resetPLC() { S = freshState(); IO.ins.forEach(x => S.tags[x.tag] = false); IO.outs.forEach(x => S.tags[x.tag] = false); phys = restInputs(); scans = 0; clearTrace(); }
+let uid = null, uname = "", prog, S, phys, lastInp = {}, running = true, scans = 0, sel = null, byId = new Map(), slots = [], MEM = new Map();
+let KEY = "plc-freebuild-v1"; const THEMEKEY = "plc-freebuild-v1-theme";
+function save() { if (!uid) return; try { localStorage.setItem(KEY, JSON.stringify(snapshot())); } catch (e) {} }
+const snapshot = () => ({ app: "oluseun-plc-freebuild", v: 2, style, ins: IO.ins, outs: IO.outs, rungs: strip(prog), hmi: HMI.widgets.map(w => Object.assign({}, w, { id: undefined })) });
+function resetPLC() { S = freshState(); IO.ins.forEach(x => S.tags[x.tag] = false); IO.outs.forEach(x => S.tags[x.tag] = false); phys = restInputs(); hmiRest(); scans = 0; clearTrace(); }
 function walk(cb) { const go = (arr, rung) => arr.forEach((n, i) => { cb(n, arr, i, rung); if (n.type === "par") n.branches.forEach(b => go(b, rung)); }); prog.rungs.forEach(r => go(r.items, r)); }
 function changed() { renderLadder(); renderInsp(); validate(); save(); refreshTrace(); tickOnce(false); paint(true); }
 
@@ -434,8 +515,8 @@ $("#ins").addEventListener("keyup", e => { const b = e.target.closest("[data-in]
 $("#ins").addEventListener("click", e => { const b = e.target.closest("[data-in]"); if (b && b.dataset.kind === "sw") { phys[b.dataset.in] = !phys[b.dataset.in]; b.textContent = phys[b.dataset.in] ? "ON" : "OFF"; b.classList.toggle("act", phys[b.dataset.in]); } });
 function renameTag(oldT, raw) {
   const nt = cleanTag(raw); if (!nt || nt === oldT) return oldT;
-  if (IO.ins.some(x => x.tag === nt) || IO.outs.some(x => x.tag === nt)) { toast("The name " + nt + " is already used by another input or output."); return oldT; }
-  walk(n => { for (const k of ["tag", "reset", "cd", "a", "b"]) if (n[k] === oldT) n[k] = nt; });
+  if (IO.ins.some(x => x.tag === nt) || IO.outs.some(x => x.tag === nt) || hmiOwn(nt)) { toast("The name " + nt + " is already used by another input or output."); return oldT; }
+  walk(n => { for (const k of ["tag", "reset", "cd", "a", "b", "ptTag", "pvTag"]) if (n[k] === oldT) n[k] = nt; });
   if (oldT in phys) { phys[nt] = phys[oldT]; delete phys[oldT]; } if (oldT in S.tags) { S.tags[nt] = S.tags[oldT]; delete S.tags[oldT]; }
   return nt;
 }
@@ -447,7 +528,7 @@ function ioChange(e) {
 $("#ins").addEventListener("change", ioChange); $("#outs").addEventListener("change", ioChange);
 
 /* ================= simulation loop ================= */
-function tickOnce(physics = true) { lastInp = Object.assign({}, phys); scan(prog, S, lastInp, physics ? SCAN : 0); if (physics) { scans++; record(); } }
+function tickOnce(physics = true) { lastInp = Object.assign({}, phys, hState); scan(prog, S, lastInp, physics ? SCAN : 0); if (physics) { scans++; record(); hmiRecord(); } }
 let lastT = 0, acc = 0, lastWatch = 0;
 function frame(t) {
   const d = Math.min(t - lastT, 200); lastT = t;
@@ -471,12 +552,13 @@ function paint(slow) {
   document.querySelectorAll("[data-lamp]").forEach(el => { const t = el.dataset.lamp, x = ioOf(t); el.classList.toggle("on", !!x && (x.dir === "in" ? !!lastInp[t] : !!S.tags[t])); });
   document.querySelectorAll("[data-st]").forEach(el => { const t = el.dataset.st, x = ioOf(t), v = !!x && (x.dir === "in" ? !!lastInp[t] : !!S.tags[t]), s = v ? "TRUE" : "FALSE"; if (el.textContent !== s) el.textContent = s; });
   $("#scanct").textContent = `scan ${scans}  (${(scans * SCAN / 1000).toFixed(1)} s)`;
-  if (slow) { renderWatch(); drawTrace(); }
+  if (tab === "hmi") paintHMI(slow);
+  if (slow) { renderWatch(); if (tab === "ladder") drawTrace(); }
 }
 function renderWatch() {
   let h = "<tr><th>Tag</th><th>Address</th><th>Value</th></tr>";
   for (const t of plainTags()) { const x = ioOf(t), v = x && x.dir === "in" ? !!lastInp[t] : !!S.tags[t]; h += `<tr><td>${esc(t)}</td><td>${x ? x.addr : MEM.get(t) || "memory bit"}</td><td class="${v ? "t" : ""}">${v ? "TRUE" : "FALSE"}</td></tr>`; }
-  walk(n => { if (isBlock(n)) { const b = S.blocks[n.name] || { et: 0, cv: 0, q: false }; h += `<tr><td>${esc(n.name)}</td><td>${n.type}</td><td class="${b.q ? "t" : ""}">${TIMERS.includes(n.type) ? `ET ${(b.et / 1000).toFixed(1)} / ${n.pt / 1000} s` : `CV ${b.cv} / ${n.pv}`}, Q ${b.q ? "TRUE" : "FALSE"}</td></tr>`; } });
+  walk(n => { if (isBlock(n)) { const b = S.blocks[n.name] || { et: 0, cv: 0, q: false }; h += `<tr><td>${esc(n.name)}</td><td>${n.type}</td><td class="${b.q ? "t" : ""}">${TIMERS.includes(n.type) ? `ET ${(b.et / 1000).toFixed(1)} / ${(b.pt !== undefined ? b.pt : n.pt) / 1000} s` : `CV ${b.cv} / ${b.pv !== undefined ? b.pv : n.pv}`}, Q ${b.q ? "TRUE" : "FALSE"}</td></tr>`; } });
   const w = $("#watch"); if (w.innerHTML !== h) w.innerHTML = h;
 }
 
@@ -526,11 +608,11 @@ const SYM = {
 };
 SYM.ncoil = SYM.coil + `<text x="18" y="22" text-anchor="middle">/</text>`; SYM.set = SYM.coil + `<text x="18" y="22" text-anchor="middle">S</text>`; SYM.reset = SYM.coil + `<text x="18" y="22" text-anchor="middle">R</text>`;
 const addrOf = t => { if (!t) return "choose a tag"; if (t.includes(".")) return "block output"; const x = ioOf(t); return x ? x.addr : (MEM.get(t) || "memory bit"); };
-const blkRows = n => n.type === "CTUD" ? ["PV  " + n.pv, "CD  " + (n.cd || "-"), "RESET " + (n.reset || "-")] : n.type === "CTU" ? ["PV  " + n.pv, "RESET " + (n.reset || "-")] : n.type === "CTD" ? ["PV  " + n.pv, "LOAD " + (n.reset || "-")] : ["PT  T#" + n.pt / 1000 + "s"];
+const blkRows = n => n.type === "CTUD" ? ["PV  " + (n.pvTag || n.pv), "CD  " + (n.cd || "-"), "RESET " + (n.reset || "-")] : n.type === "CTU" ? ["PV  " + (n.pvTag || n.pv), "RESET " + (n.reset || "-")] : n.type === "CTD" ? ["PV  " + (n.pvTag || n.pv), "LOAD " + (n.reset || "-")] : ["PT  " + (n.ptTag || "T#" + n.pt / 1000 + "s")];
 const inPin = n => n.type === "CTU" || n.type === "CTUD" ? "CU" : n.type === "CTD" ? "CD" : "IN";
 function nodeHTML(n) {
   const cls = sel && sel.type === "node" && sel.id === n.id ? " selx" : "";
-  if (n.type === "par") return `<div class="n par${cls}" data-id="${n.id}">${n.branches.map(b => `<div class="branch">${seriesHTML(b, false)}</div>`).join("")}</div>`;
+  if (n.type === "par") return `<div class="n par${cls}" data-id="${n.id}"><span class="bh l" data-bh="l" data-par="${n.id}" data-tip="bh"></span>${n.branches.map(b => `<div class="branch">${seriesHTML(b, false)}</div>`).join("")}<span class="bh r" data-bh="r" data-par="${n.id}" data-tip="bh"></span></div>`;
   if (n.type === "cmp") return `<div class="n blk${cls}" data-id="${n.id}" data-tip="cmp${n.op}" tabindex="0" role="button" aria-label="Compare ${esc(n.a)} ${n.op} ${esc(n.b)}"><div class="lab">CMP</div><div class="bxr"><i class="w l"></i><div class="bx"><div class="b1 c">${esc(n.a || "?")} ${esc(n.op)} ${esc(n.b)}</div></div><i class="w r"></i></div><div class="pad"></div></div>`;
   if (isBlock(n)) return `<div class="n blk${cls}" data-id="${n.id}" data-tip="${n.type}" tabindex="0" role="button" aria-label="${n.type} ${esc(n.name)}"><div class="lab">${esc(n.name)}</div><div class="bxr"><i class="w l"></i><div class="bx"><div class="b1"><span>${inPin(n)}</span><b>${n.type}</b><span>Q</span></div>${blkRows(n).map(r => `<div class="b2">${esc(r)}</div>`).join("")}<div class="b2" data-val></div></div><i class="w r"></i></div><div class="pad"></div></div>`;
   return `<div class="n${cls}" data-id="${n.id}" data-tip="${n.type}" tabindex="0" role="button" aria-label="${n.type} ${esc(n.tag)}"><div class="lab">${esc(n.tag || "?")}</div><div class="sym"><i class="w l"></i><svg viewBox="0 0 36 36" aria-hidden="true">${SYM[n.type]}</svg><i class="w r"></i></div><div class="adr">${esc(addrOf(n.tag))}</div></div>`;
@@ -548,7 +630,11 @@ function renderLadder() {
   let k = 0; for (const t of plainTags()) if (!ioOf(t)) { MEM.set(t, style === "logix" ? `B3:${Math.floor(k / 16)}/${k % 16}` : "memory bit"); k++; }
   $("#ladder").innerHTML = `<div class="rungs">` + (prog.rungs.map((r, i) => `<div class="rung"><button class="rnum${sel && sel.type === "rung" && sel.rung === r ? " selx" : ""}" data-rung="${i}" aria-label="Select rung ${i + 1}">${i + 1}</button><div class="rwrap">${r.comment ? `<div class="rcom">${esc(r.comment)}</div>` : ""}<div class="rbody">${seriesHTML(r.items, true)}</div></div></div>`).join("") || `<p class="hint">No rungs yet. Click <b>New Rung</b> or any instruction to begin.</p>`) + `</div>`;
   for (const [id, e] of byId) { e.el = $(`#ladder [data-id="${id}"]`); e.val = e.el && e.el.querySelector(":scope > .bxr [data-val]"); }
+  updateTagList();
+}
+function updateTagList() {
   const tags = new Set([...IO.ins, ...IO.outs].map(x => x.tag)); walk(n => { if (n.tag) tags.add(n.tag); if (isBlock(n)) { tags.add(n.name + ".Q"); if (n.type === "CTUD") tags.add(n.name + ".QD"); } });
+  HMI.widgets.forEach(w => { if (OWN.includes(w.type) && w.tag) tags.add(w.tag); });
   $("#taglist").innerHTML = [...tags].map(t => `<option value="${esc(t)}">`).join("");
 }
 $("#ladder").addEventListener("click", e => {
@@ -620,26 +706,26 @@ function renderInsp() {
   else if (sel.type === "rung") h = `<h2>Rung ${prog.rungs.indexOf(sel.rung) + 1}</h2><div class="fields"><label>Rung comment<input type="text" id="f-com" value="${esc(sel.rung.comment || "")}" style="width:340px" autocomplete="off"></label></div><div class="rowbtn"><button data-a="up">Move up</button><button data-a="down">Move down</button><button data-a="del">Delete rung</button></div>`;
   else if (sel.type === "slot") h = `<h2>Empty position</h2><p class="hint">Click an instruction in the palette to place it here.</p><div class="rowbtn"><button data-a="del">${parOf(sel.arr) ? "Delete this branch" : "Delete rung"}</button>${parOf(sel.arr) ? `<button data-a="selpar">Select whole branch</button>` : ""}</div>`;
   else { const e = byId.get(sel.id); if (!e) { box.innerHTML = ""; return; } const n = e.node; let f = "";
-    if (n.type === "par") { box.innerHTML = `<h2>Parallel branch (whole group)</h2><p class="hint">This selects every path of the branch together. Click an instruction in the palette to add it after the branch.</p><div class="rowbtn"><button data-a="up">Move left</button><button data-a="down">Move right</button><button data-a="del">Delete whole branch</button></div>`; return; }
+    if (n.type === "par") { box.innerHTML = `<h2>Parallel branch (whole group)</h2><p class="hint">Drag the round handles on the left or right edge of the branch over more instructions to widen it, or use the buttons. The top path keeps the instructions the branch covers, and the lower paths run in parallel with them.</p><div class="rowbtn"><button data-a="wl">Widen left</button><button data-a="nl">Narrow left</button><button data-a="nr">Narrow right</button><button data-a="wr">Widen right</button></div><div class="rowbtn"><button data-a="up">Move left</button><button data-a="down">Move right</button><button data-a="del">Delete whole branch</button></div>`; return; }
     const kinds = CONTACTS.includes(n.type) ? CONTACTS : COILS.includes(n.type) ? COILS : TIMERS.includes(n.type) ? TIMERS : COUNTERS.includes(n.type) ? COUNTERS : null;
     if (kinds) f += `<label>Instruction<select id="f-type">${kinds.map(k => `<option value="${k}" ${k === n.type ? "selected" : ""}>${TYPE_NAMES[k]}</option>`).join("")}</select></label>`;
     if ("tag" in n) f += `<label>Tag<input type="text" id="f-tag" list="taglist" value="${esc(n.tag)}" autocomplete="off"></label>`;
     if (isBlock(n)) f += `<label>Name<input type="text" id="f-name" value="${esc(n.name)}" autocomplete="off"></label>`;
-    if (TIMERS.includes(n.type)) f += `<label>PT (seconds)<input type="number" id="f-pt" min="0.1" step="0.1" value="${n.pt / 1000}"></label>`;
-    if (COUNTERS.includes(n.type)) f += `<label>PV (preset)<input type="number" id="f-pv" min="1" step="1" value="${n.pv}"></label>`;
+    if (TIMERS.includes(n.type)) f += `<label>PT (seconds)<input type="number" id="f-pt" min="0.1" step="0.1" value="${n.pt / 1000}"></label><label>PT from tag (optional)<input type="text" id="f-ptt" list="taglist" value="${esc(n.ptTag || "")}" placeholder="e.g. HMI_SP_1" autocomplete="off"></label>`;
+    if (COUNTERS.includes(n.type)) f += `<label>PV (preset)<input type="number" id="f-pv" min="1" step="1" value="${n.pv}"></label><label>PV from tag (optional)<input type="text" id="f-pvt" list="taglist" value="${esc(n.pvTag || "")}" placeholder="e.g. HMI_SP_1" autocomplete="off"></label>`;
     if (n.type === "CTUD") f += `<label>CD (count down) tag<input type="text" id="f-cd" list="taglist" value="${esc(n.cd || "")}" autocomplete="off"></label>`;
     if (COUNTERS.includes(n.type)) f += `<label>${n.type === "CTD" ? "LOAD" : "RESET"} tag<input type="text" id="f-reset" list="taglist" value="${esc(n.reset || "")}" autocomplete="off"></label>`;
     if (n.type === "cmp") f += `<label>Value A<input type="text" id="f-a" value="${esc(n.a)}" autocomplete="off"></label><label>Compare<select id="f-op">${["=", "<>", ">", ">=", "<", "<="].map(o => `<option ${o === n.op ? "selected" : ""}>${esc(o)}</option>`).join("")}</select></label><label>Value B<input type="text" id="f-b" value="${esc(n.b)}" autocomplete="off"></label>`;
     h = `<h2>${TYPE_NAMES[n.type]}</h2><p class="hint">${esc(TIPS[tipKey(n)].d)}${"tag" in n ? " Pick a tag from the list, or type a new name to make a memory bit." : ""}</p><div class="fields">${f}</div><div class="rowbtn"><button data-a="up">Move left</button><button data-a="down">Move right</button><button data-a="branch">Branch</button>${parOf(e.arr) ? `<button data-a="selpar">Select whole branch</button>` : ""}<button data-a="del">Delete</button></div>`; }
   box.innerHTML = h;
 }
-$("#insp").addEventListener("click", e => { const a = e.target.closest("[data-a]"); if (!a) return; ({ up: () => move(-1), down: () => move(1), del, branch: addBranch, selpar: selPar })[a.dataset.a](); });
+$("#insp").addEventListener("click", e => { const a = e.target.closest("[data-a]"); if (!a) return; ({ up: () => move(-1), down: () => move(1), del, branch: addBranch, selpar: selPar, wl: () => pstep("l", true), nl: () => pstep("l", false), wr: () => pstep("r", true), nr: () => pstep("r", false) })[a.dataset.a](); });
 $("#insp").addEventListener("change", e => {
   if (e.target.id === "f-com" && sel && sel.type === "rung") { sel.rung.comment = e.target.value.trim(); changed(); return; }
   if (!sel || sel.type !== "node") return; const n = byId.get(sel.id).node, v = e.target.value.trim(), clean = s => s.replace(/[^\w.]/g, "_");
   switch (e.target.id) {
     case "f-type": n.type = v; break; case "f-tag": n.tag = clean(v); break; case "f-name": if (v) n.name = clean(v).replace(/\./g, "_"); break;
-    case "f-pt": n.pt = Math.max(100, Math.round(parseFloat(v) * 1000) || 1000); break; case "f-pv": n.pv = Math.max(1, parseInt(v) || 1); break; case "f-reset": n.reset = clean(v); break; case "f-cd": n.cd = clean(v); break;
+    case "f-pt": n.pt = Math.max(100, Math.round(parseFloat(v) * 1000) || 1000); break; case "f-pv": n.pv = Math.max(1, parseInt(v) || 1); break; case "f-ptt": if (v) n.ptTag = clean(v); else delete n.ptTag; break; case "f-pvt": if (v) n.pvTag = clean(v); else delete n.pvTag; break; case "f-reset": n.reset = clean(v); break; case "f-cd": n.cd = clean(v); break;
     case "f-a": n.a = clean(v); break; case "f-b": n.b = clean(v); break; case "f-op": n.op = v; break; default: return;
   }
   if (e.target.id === "f-type" && n.type === "CTUD" && n.cd === undefined) n.cd = "";
@@ -656,6 +742,7 @@ function validate() {
     if (n.type === "par" && n.branches.some(b => !b.length)) w.push(`Rung ${k} has an empty branch. It passes no power until you add a contact.`);
     if ("tag" in n && !n.tag) w.push(`Rung ${k}: an instruction has no tag.`);
     if (n.type === "coil" || n.type === "ncoil") { if (coils[n.tag]) w.push(`${n.tag} is driven by a coil on rung ${coils[n.tag]} and rung ${k}. The last rung wins, so use one coil per output.`); else coils[n.tag] = k; }
+    if (isCoil(n) && hmiOwn(n.tag)) w.push(`Rung ${k}: ${n.tag} belongs to an HMI object. A coil should not write to it.`);
     if (isCoil(n)) { const x = ioOf(n.tag); if (x && x.dir === "in") w.push(`Rung ${k}: ${n.tag} is an input. A coil should write to an output or a memory bit.`); }
   });
   $("#warn").innerHTML = [...new Set(w)].map(x => `<li>${esc(x)}</li>`).join("");
@@ -714,8 +801,8 @@ function jpgBuild(opts) {
   // layout
   const R = prog.rungs.map(r => ({ r, m: sm(r.items), com: r.comment ? 22 : 0 }));
   let RW = 760; R.forEach(o => RW = Math.max(RW, o.m.w + 40));
-  const rows = opts.table ? tagRows(live) : [], W = RW + MX * 2 + 30, HEAD = 96, RUNG_GAP = 22;
-  const rungsH = R.reduce((a, o) => a + o.com + o.m.h + RUNG_GAP, 0) || 60, tableH = rows.length ? 40 + (rows.length + 1) * 24 : 0, H = HEAD + rungsH + tableH + 50;
+  const hmiOn = !!opts.hmi && HMI.widgets.length > 0, rows = opts.table ? tagRows(live) : [], W = Math.max(RW + MX * 2 + 30, hmiOn ? HW + MX * 2 : 0), HEAD = 96, RUNG_GAP = 22;
+  const rungsH = R.reduce((a, o) => a + o.com + o.m.h + RUNG_GAP, 0) || 60, tableH = rows.length ? 40 + (rows.length + 1) * 24 : 0, H = HEAD + rungsH + tableH + 50 + (hmiOn ? HH + 50 : 0);
   const cv = document.createElement("canvas"); cv.width = W * SC; cv.height = H * SC; const g = cv.getContext("2d"); g.scale(SC, SC);
   g.fillStyle = "#fff"; g.fillRect(0, 0, W, H); g.textBaseline = "alphabetic"; g.lineJoin = "miter";
   txt(g, opts.title || "Ladder program", MX, 36, "bold 24px " + SANS);
@@ -746,20 +833,21 @@ function jpgBuild(opts) {
       r.forEach((c, j) => txt(g, cut(String(c), j === 3 ? 30 : j === 4 ? 36 : 24), cols[j] + 8, yy + 16, (i ? "12px " : "bold 12px ") + (j < 2 ? MONO : SANS))); });
     cols.slice(1).forEach(cx => { g.beginPath(); g.moveTo(cx, ty); g.lineTo(cx, ty + (rows.length + 1) * 24); g.stroke(); });
   }
+  if (hmiOn) { const hy = HEAD + rungsH + tableH + 10; txt(g, "HMI screen", MX, hy + 10, "bold 15px " + SANS); drawHMI(g, MX, hy + 24); }
   txt(g, "Made with the O.O PLC Trainer (Free Build)", W - MX, H - 18, "11px " + SANS, "right");
   return cv;
 }
 function tagRows(live) {
   const rows = [], vs = t => live ? [getBool(S, t) ? "TRUE" : "FALSE"] : [];
   plainTags().forEach(t => { const x = ioOf(t); rows.push([t, x ? x.addr : (MEM.get(t) || "memory bit"), x ? (x.dir === "in" ? "Input" : "Output") : "Memory bit", x && x.dir === "in" ? KINDS[x.kind] : "", ...vs(t)]); });
-  walk(n => { if (isBlock(n)) { const b = S.blocks[n.name] || { et: 0, cv: 0 }; rows.push([n.name, style === "logix" ? (TIMERS.includes(n.type) ? "T4:" : "C5:") + rows.filter(r => /Timer|Counter/.test(r[2])).length : "variable", (TIMERS.includes(n.type) ? "Timer " : "Counter ") + n.type, TIMERS.includes(n.type) ? `PT ${n.pt / 1000} s` : `PV ${n.pv}`, ...(live ? [TIMERS.includes(n.type) ? `ET ${(b.et / 1000).toFixed(1)} s, Q ${b.q ? "TRUE" : "FALSE"}` : `CV ${b.cv}, Q ${b.q ? "TRUE" : "FALSE"}`] : [])]); } });
+  walk(n => { if (isBlock(n)) { const b = S.blocks[n.name] || { et: 0, cv: 0 }; rows.push([n.name, style === "logix" ? (TIMERS.includes(n.type) ? "T4:" : "C5:") + rows.filter(r => /Timer|Counter/.test(r[2])).length : "variable", (TIMERS.includes(n.type) ? "Timer " : "Counter ") + n.type, TIMERS.includes(n.type) ? (n.ptTag ? `PT from ${n.ptTag}` : `PT ${n.pt / 1000} s`) : (n.pvTag ? `PV from ${n.pvTag}` : `PV ${n.pv}`), ...(live ? [TIMERS.includes(n.type) ? `ET ${(b.et / 1000).toFixed(1)} s, Q ${b.q ? "TRUE" : "FALSE"}` : `CV ${b.cv}, Q ${b.q ? "TRUE" : "FALSE"}`] : [])]); } });
   return rows;
 }
 const dlg = $("#dlg-exp");
-$("#b-exp").addEventListener("click", () => { try { $("#x-name").value = localStorage.getItem(KEY + "-name") || $("#x-name").value; } catch (e) {} $("#x-dl").hidden = true; $("#expimg").hidden = true; dlg.showModal(); });
+$("#b-exp").addEventListener("click", () => { try { $("#x-name").value = localStorage.getItem(KEY + "-name") || uname || $("#x-name").value; } catch (e) {} $("#x-dl").hidden = true; $("#expimg").hidden = true; $("#x-hmi").disabled = !HMI.widgets.length; $("#x-hmi").checked = HMI.widgets.length > 0; dlg.showModal(); });
 $("#x-close").addEventListener("click", () => dlg.close());
 $("#x-make").addEventListener("click", () => {
-  const opts = { name: $("#x-name").value.trim(), title: $("#x-title").value.trim() || "Ladder program", table: $("#x-table").checked, live: $("#x-live").checked };
+  const opts = { name: $("#x-name").value.trim(), title: $("#x-title").value.trim() || "Ladder program", table: $("#x-table").checked, live: $("#x-live").checked, hmi: $("#x-hmi").checked };
   try { localStorage.setItem(KEY + "-name", opts.name); } catch (e) {}
   const cv = jpgBuild(opts);
   cv.toBlob(b => { if (!b) { toast("Could not create the image. Try a smaller program."); return; } const url = URL.createObjectURL(b), a = $("#x-dl");
@@ -771,7 +859,7 @@ $("#x-dl").addEventListener("click", () => setTimeout(() => toast("JPG downloade
 function applySnapshot(d) {
   if (!d || !Array.isArray(d.rungs)) throw 0;
   const base = defaultIO(); IO = { ins: base.ins.map((x, i) => Object.assign(x, d.ins && d.ins[i] && d.ins[i].tag ? { tag: cleanTag(d.ins[i].tag) || x.tag, kind: KINDS[d.ins[i].kind] ? d.ins[i].kind : x.kind } : {})), outs: base.outs.map((x, i) => d.outs && d.outs[i] && d.outs[i].tag ? { tag: cleanTag(d.outs[i].tag) || x.tag } : x) };
-  style = d.style === "logix" ? "logix" : "micro800"; $("#s-style").value = style; prog = stamp(d.rungs); sel = null; resetPLC(); renderIO(); changed();
+  style = d.style === "logix" ? "logix" : "micro800"; $("#s-style").value = style; prog = stamp(d.rungs); sel = null; loadHMI(d.hmi); resetPLC(); renderIO(); changed();
 }
 $("#b-save").addEventListener("click", () => {
   const b = new Blob([JSON.stringify(snapshot(), null, 1)], { type: "application/json" }), a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = "ladder-program.json"; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); toast("Program file downloaded.");
@@ -781,19 +869,294 @@ $("#f-load").addEventListener("change", e => { const f = e.target.files[0]; if (
   r.onload = () => { try { applySnapshot(JSON.parse(r.result)); toast("Program loaded."); } catch (x) { toast("That file is not a saved ladder program."); } }; r.readAsText(f); e.target.value = ""; });
 let newT = null;
 $("#b-new").addEventListener("click", e => { const b = e.currentTarget; if (!newT) { b.textContent = "Click again to clear"; b.setAttribute("aria-pressed", "true"); newT = setTimeout(() => { newT = null; b.textContent = "New"; b.setAttribute("aria-pressed", "false"); }, 3000); return; }
-  clearTimeout(newT); newT = null; b.textContent = "New"; b.setAttribute("aria-pressed", "false"); prog = stamp([{ items: [] }]); sel = null; resetPLC(); renderIO(); changed(); });
+  clearTimeout(newT); newT = null; b.textContent = "New"; b.setAttribute("aria-pressed", "false"); prog = stamp([{ items: [] }]); sel = null; loadHMI([]); resetPLC(); renderIO(); changed(); });
 $("#s-style").addEventListener("change", e => { style = e.target.value; renderIO(); changed(); });
-$("#b-theme").addEventListener("click", e => { const d = document.documentElement, dark = d.dataset.theme === "dark" || (!d.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches); d.dataset.theme = dark ? "light" : "dark"; e.currentTarget.setAttribute("aria-pressed", !dark); e.currentTarget.textContent = dark ? "Dark mode" : "Light mode"; try { localStorage.setItem(KEY + "-theme", d.dataset.theme); } catch (x) {} drawTrace(); });
+$("#b-theme").addEventListener("click", e => { const d = document.documentElement, dark = d.dataset.theme === "dark" || (!d.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches); d.dataset.theme = dark ? "light" : "dark"; e.currentTarget.setAttribute("aria-pressed", !dark); e.currentTarget.textContent = dark ? "Dark mode" : "Light mode"; try { localStorage.setItem(THEMEKEY, d.dataset.theme); } catch (x) {} drawTrace(); });
 $("#b-run").addEventListener("click", () => { running = !running; $("#b-run").textContent = running ? "Pause" : "Run"; $("#b-run").classList.toggle("primary", running); acc = 0; });
 $("#b-step").addEventListener("click", () => { if (running) $("#b-run").click(); tickOnce(); paint(true); });
 $("#b-reset").addEventListener("click", () => { resetPLC(); renderIO(); refreshTrace(); tickOnce(false); paint(true); });
 window.addEventListener("resize", () => drawTrace());
 
+/* ================= drag and drop (mouse) and branch handles ================= */
+let dd = null, ddSwallow = false;
+const ddGhost = document.createElement("div"); ddGhost.id = "ddghost"; ddGhost.hidden = true; document.body.appendChild(ddGhost);
+const DDC = ["dd-b", "dd-a", "dd-s", "dd-x", "dd-r"], ddClear = () => document.querySelectorAll("." + DDC.join(",.")).forEach(el => el.classList.remove(...DDC));
+function ddEnd() { dd = null; ddGhost.hidden = true; ddClear(); document.body.classList.remove("dragging", "dragging-bh"); }
+function ddTarget(el, x) {
+  if (!el || !el.closest) return null; const ld = el.closest("#ladder"); if (!ld) return null;
+  const rungEl = el.closest(".rung"), rung = rungEl ? [...ld.querySelectorAll(".rung")].indexOf(rungEl) : null;
+  const nd = el.closest(".n[data-id]:not(.par)");
+  if (nd) { const en = byId.get(nd.dataset.id); if (!en) return null; const r = nd.getBoundingClientRect(), after = x > r.left + r.width / 2; return { el: nd, cls: after ? "dd-a" : "dd-b", arr: en.arr, idx: en.idx + (after ? 1 : 0), node: en.node, rung }; }
+  const sl = el.closest(".n[data-slot]"); if (sl) return { el: sl, cls: "dd-s", arr: slots[+sl.dataset.slot].arr, idx: 0, rung };
+  const f = el.closest(".fill");
+  if (f) { const nx = f.nextElementSibling, pv = f.previousElementSibling, ne = nx && nx.dataset.id && byId.get(nx.dataset.id), pe = pv && pv.dataset.id && byId.get(pv.dataset.id);
+    if (ne) return { el: f, cls: "dd-x", arr: ne.arr, idx: ne.idx, node: ne.node, rung };
+    if (pe) return { el: f, cls: "dd-x", arr: pe.arr, idx: pe.idx + 1, node: pe.node, rung };
+    if (pv && pv.dataset.slot !== undefined) return { el: f, cls: "dd-x", arr: slots[+pv.dataset.slot].arr, idx: 0, rung }; }
+  if (rungEl && prog.rungs[rung]) { const it = prog.rungs[rung].items; return { el: rungEl.querySelector(".rbody"), cls: "dd-r", arr: it, idx: it.length, rung }; }
+  if (!prog.rungs.length) return { el: ld, cls: "dd-r", empty: true, rung: null };
+  return null;
+}
+/* grow or shrink the top path of a branch by one instruction on one side */
+function bstep(par, side, grow) {
+  const e = byId.get(par.id); if (!e) return false; const holder = e.arr, at = e.idx, main = par.branches[0];
+  if (side === "r") {
+    if (grow) { const nx = holder[at + 1]; if (!nx) return false; if (isCoil(nx)) return "coil"; main.push(nx); holder.splice(at + 1, 1); return true; }
+    if (main.length > 1) { holder.splice(at + 1, 0, main.pop()); return true; } return false;
+  }
+  if (grow) { const pv = holder[at - 1]; if (!pv) return false; main.unshift(pv); holder.splice(at - 1, 1); return true; }
+  if (main.length > 1) { holder.splice(at, 0, main.shift()); return true; } return false;
+}
+function pstep(side, grow) {
+  if (!sel || sel.type !== "node") return; const e = byId.get(sel.id); if (!e || e.node.type !== "par") return;
+  const r = bstep(e.node, side, grow); if (r === "coil") return toast("A branch cannot take in the output coil.");
+  if (!r) return toast(grow ? "There is nothing more to take in on that side." : "The branch cannot get any narrower."); changed();
+}
+function ddBranchMove(e) {
+  const en = byId.get(dd.par); if (!en) return; const par = en.node, main = par.branches[0], holder = en.arr, at = en.idx, x = e.clientX;
+  const box = n => { const m = n && byId.get(n.id); return m && m.el ? m.el.getBoundingClientRect() : null; };
+  let r;
+  if (dd.side === "r") { const nx = box(holder[at + 1]), la = main.length > 1 ? box(main[main.length - 1]) : null;
+    if (nx && x > nx.left + nx.width / 2) r = bstep(par, "r", true); else if (la && x < la.left - 4) r = bstep(par, "r", false); }
+  else { const pv = box(holder[at - 1]), fi = main.length > 1 ? box(main[0]) : null;
+    if (pv && x < pv.left + pv.width / 2) r = bstep(par, "l", true); else if (fi && x > fi.right + 4) r = bstep(par, "l", false); }
+  if (r === "coil") { if (!dd.warned) { dd.warned = true; toast("A branch cannot take in the output coil."); } return; }
+  if (r) changed();
+}
+function ddDrop(d, e) {
+  const t = ddTarget(document.elementFromPoint(e.clientX, e.clientY), e.clientX);
+  if (d.kind === "pal" && d.p === "rung") { const ri = t && t.rung != null ? t.rung : prog.rungs.length - 1, r = { id: nid(), comment: "", items: [] }; prog.rungs.splice(ri + 1, 0, r); sel = { type: "slot", arr: r.items }; return changed(); }
+  if (!t) return;
+  if (t.empty) { const r = { id: nid(), comment: "", items: [] }; prog.rungs.push(r); t.arr = r.items; t.idx = 0; }
+  if (d.kind === "pal" && d.p === "branch") { if (!t.node) { toast("Drop Branch onto an instruction."); return; } sel = { type: "node", id: t.node.id }; return addBranch(); }
+  if (d.kind === "pal") { const n = make(d.p); let i = t.idx; if (i && isCoil(t.arr[i - 1]) && !isCoil(n)) i--; t.arr.splice(i, 0, n); sel = { type: "node", id: n.id }; return changed(); }
+  const e0 = byId.get(d.id); if (!e0 || (t.node && t.node === e0.node)) return;
+  let i = t.idx; if (t.arr === e0.arr && (i === e0.idx || i === e0.idx + 1)) return;
+  e0.arr.splice(e0.idx, 1); if (t.arr === e0.arr && i > e0.idx) i--;
+  if (i && isCoil(t.arr[i - 1]) && !isCoil(e0.node)) i--;
+  t.arr.splice(i, 0, e0.node); sel = { type: "node", id: e0.node.id }; changed();
+}
+document.addEventListener("pointerdown", e => {
+  if (e.pointerType === "touch" || e.button !== 0 || dd || !e.target.closest) return;
+  const base = { sx: e.clientX, sy: e.clientY, on: false }, bh = e.target.closest(".bh");
+  if (bh) { dd = Object.assign(base, { kind: "bh", par: bh.dataset.par, side: bh.dataset.bh }); e.preventDefault(); return; }
+  const pb = e.target.closest("#pal [data-p],#pal2 [data-p]"); if (pb) { dd = Object.assign(base, { kind: "pal", p: pb.dataset.p, label: pb.textContent.trim() }); return; }
+  const nd = e.target.closest("#ladder .n[data-id]:not(.par)"); if (nd && !e.target.closest("input,select")) { const en = byId.get(nd.dataset.id); if (en) dd = Object.assign(base, { kind: "node", id: nd.dataset.id, label: en.node.tag || en.node.name || en.node.type }); }
+});
+window.addEventListener("pointermove", e => {
+  if (!dd) return;
+  if (!dd.on) { if (Math.hypot(e.clientX - dd.sx, e.clientY - dd.sy) < 5) return; dd.on = true; showTip(null); document.body.classList.add(dd.kind === "bh" ? "dragging-bh" : "dragging");
+    if (dd.kind === "bh") { sel = { type: "node", id: dd.par }; renderLadder(); renderInsp(); } else { ddGhost.textContent = dd.label; ddGhost.hidden = false; } }
+  if (dd.kind === "bh") return ddBranchMove(e);
+  ddGhost.style.left = e.clientX + 14 + "px"; ddGhost.style.top = e.clientY + 14 + "px";
+  if (e.clientY < 70) scrollBy(0, -14); else if (e.clientY > innerHeight - 70) scrollBy(0, 14);
+  ddClear(); const t = ddTarget(document.elementFromPoint(e.clientX, e.clientY), e.clientX); if (t && t.el) t.el.classList.add(t.cls);
+});
+window.addEventListener("pointerup", e => { if (!dd) return; const d = dd; if (d.on) { if (d.kind !== "bh") ddDrop(d, e); ddSwallow = true; setTimeout(() => { ddSwallow = false; }, 60); } ddEnd(); });
+window.addEventListener("pointercancel", ddEnd);
+window.addEventListener("keydown", e => { if (e.key === "Escape" && dd) ddEnd(); });
+document.addEventListener("click", e => { if (ddSwallow) { e.stopPropagation(); e.preventDefault(); ddSwallow = false; } }, true);
+
+/* ================= HMI screen ================= */
+const HW = 800, HH = 480, GRID = 10;
+const HCOL = { green: "#19c04a", red: "#ff3b30", amber: "#ff9f0a", yellow: "#ffd400", blue: "#4f9bff", white: "#ffffff" };
+const HTYPES = { pb: "Push button", sw: "Switch", lamp: "Lamp", num: "Number display", entry: "Number entry", label: "Label", trend: "Trend" };
+const HDEF = { pb: { w: 110, h: 56, label: "START", color: "green" }, sw: { w: 110, h: 56, label: "AUTO", color: "amber" }, lamp: { w: 150, h: 44, label: "RUNNING", color: "green" }, num: { w: 150, h: 70, label: "Timer (s)", color: "white" }, entry: { w: 170, h: 74, label: "Preset (s)", color: "white" }, label: { w: 220, h: 30, label: "Motor control", color: "white" }, trend: { w: 320, h: 150, label: "Trend", color: "green" } };
+const HHINT = {
+  pb: "While the button is held, its bit is TRUE. In the Ladder tab, pick this bit in a Direct or Reverse Contact, exactly like a physical input.",
+  sw: "Click to switch its bit on or off. In the Ladder tab, pick this bit in a contact.",
+  lamp: "Lights when its tag is TRUE. Use any input, output, memory bit or block output such as TON_1.Q.",
+  num: "Shows a number. Use a block value such as TON_1.ET (seconds) or CTU_1.CV, or any tag (TRUE shows 1).",
+  entry: "The operator types a number here. In the Ladder tab, use this tag in a timer's PT from tag (seconds), a counter's PV from tag, or a Compare.",
+  label: "A plain text label for titles and notes.",
+  trend: "A live chart of up to two tags. Bits plot as 0 or 1, timer and counter values plot as numbers."
+};
+const OWN = ["pb", "sw", "entry"], hbits = ["pb", "sw"];
+let HMI = { widgets: [] }, hsel = null, hmode = "edit", tab = "ladder", HID = 1, hs = 1, hdrag = null, hdown = null;
+const hState = {}, HT = new Map();
+const hById = id => HMI.widgets.find(w => w.id === id), hget = () => hsel && hById(hsel);
+const tagDot = s => String(s || "").replace(/[^\w.]/g, "_").slice(0, 40);
+const clampN = (v, lo, hi) => Math.min(hi, Math.max(lo, v)), snap = v => Math.round(v / GRID) * GRID;
+const hmiOwn = t => HMI.widgets.some(w => OWN.includes(w.type) && w.tag === t);
+function cleanW(o) {
+  if (!o || !HTYPES[o.type]) return null; const d = HDEF[o.type], n = (v, df, lo, hi) => { v = Number(v); return Number.isFinite(v) ? clampN(v, lo, hi) : df; };
+  return { id: "w" + (HID++), type: o.type, x: n(o.x, 20, 0, HW - 20), y: n(o.y, 20, 0, HH - 16), w: n(o.w, d.w, 20, HW), h: n(o.h, d.h, 16, HH), label: String(o.label == null ? d.label : o.label).slice(0, 40), tag: tagDot(o.tag), tag2: tagDot(o.tag2), color: HCOL[o.color] ? o.color : d.color,
+    unit: String(o.unit || "").slice(0, 8), min: n(o.min, 0, -99999, 99999), max: n(o.max, 100, -99999, 99999), step: n(o.step, 1, 0.01, 1000), value: n(o.value, 5, -99999, 99999), dec: Math.round(n(o.dec, -1, -1, 3)), win: [5, 10, 30].includes(+o.win) ? +o.win : 10 };
+}
+function loadHMI(arr) { HID = 1; HMI = { widgets: (Array.isArray(arr) ? arr : []).slice(0, 60).map(cleanW).filter(Boolean) }; hsel = null; HT.clear(); hmiSync(); renderHMI(); renderHInsp(); }
+function hmiSync() {
+  const keep = new Set();
+  HMI.widgets.forEach(w => { if (hbits.includes(w.type)) { keep.add(w.tag); if (!(w.tag in hState)) hState[w.tag] = false; } else if (w.type === "entry") { keep.add(w.tag); hState[w.tag] = w.value; } });
+  Object.keys(hState).forEach(k => { if (!keep.has(k)) { delete hState[k]; if (S) delete S.tags[k]; } });
+}
+function hmiRest() { HMI.widgets.forEach(w => { if (hbits.includes(w.type)) hState[w.tag] = false; }); }
+function hmiRecord() {
+  const seen = new Set();
+  HMI.widgets.forEach(w => { if (w.type !== "trend") return; [w.tag, w.tag2].forEach(t => { if (!t || seen.has(t)) return; seen.add(t); let tr = HT.get(t); if (!tr) HT.set(t, tr = { buf: new Float32Array(TRN), head: 0, count: 0 }); tr.head = (tr.head + 1) % TRN; tr.count = Math.min(tr.count + 1, TRN); tr.buf[tr.head] = getNum(S, t); }); });
+}
+function freeHmiTag(pre) { const used = new Set([...IO.ins, ...IO.outs].map(x => x.tag)); HMI.widgets.forEach(w => { if (OWN.includes(w.type)) used.add(w.tag); }); let i = 1; while (used.has(pre + "_" + i)) i++; return pre + "_" + i; }
+function numText(w, v) { const t = w.tag || ""; if (w.dec >= 0) return v.toFixed(w.dec); if (/\.(ET|PT)$/.test(t)) return v.toFixed(1); return Number.isInteger(v) ? String(v) : v.toFixed(1); }
+
+/* ---- drawing a trend (used on screen and in the JPG) ---- */
+function drawTrend(g, x, y, w, h, wd) {
+  g.save(); g.fillStyle = "#000"; g.fillRect(x, y, w, h); g.strokeStyle = "#fff"; g.lineWidth = 2; g.strokeRect(x + 1, y + 1, w - 2, h - 2);
+  const ns = (wd.win || 10) * 50, tags = [wd.tag, wd.tag2].filter(Boolean), px = x + 10, pw = w - 20, py = y + 24, ph = h - 40, cols = [HCOL[wd.color] || HCOL.green, "#ffffff"];
+  g.font = "600 11px Arial, Helvetica, sans-serif"; g.textBaseline = "alphabetic"; g.textAlign = "left"; g.fillStyle = "#fff"; g.fillText(wd.label || "Trend", x + 10, y + 16);
+  tags.forEach((t, k) => { const tr = HT.get(t); if (!tr) return; let lo = 0, hi = -Infinity; const vals = [];
+    for (let i = Math.max(0, ns - tr.count); i < ns; i++) { const v = tr.buf[((tr.head - (ns - 1 - i)) % TRN + TRN) % TRN]; vals.push(v); lo = Math.min(lo, v); hi = Math.max(hi, v); }
+    if (!vals.length) return; if (hi <= lo) hi = lo + 1; g.strokeStyle = cols[k]; g.lineWidth = 2; g.beginPath();
+    vals.forEach((v, j) => { const i = ns - vals.length + j, xx = px + i / ns * pw, yy = py + ph - (v - lo) / (hi - lo) * ph; if (j) g.lineTo(xx, yy); else g.moveTo(xx, yy); }); g.stroke(); });
+  g.fillStyle = "#fff"; g.fillText(tags.join("  /  ") + (tags.length ? "   (" + (wd.win || 10) + " s)" : ""), x + 10, y + h - 8); g.restore();
+}
+function drawTrendEl(el, w) { const cv = el.querySelector("canvas"); if (!cv) return; const g = cv.getContext("2d"); g.setTransform(2, 0, 0, 2, 0, 0); g.clearRect(0, 0, w.w, w.h); drawTrend(g, 0, 0, w.w, w.h, w); }
+
+/* ---- DOM screen ---- */
+function wHTML(w) {
+  const c = HCOL[w.color] || HCOL.green, st = `left:${w.x}px;top:${w.y}px;width:${w.w}px;height:${w.h}px;--c:${c}`, a = `class="hw hw-${w.type}${hsel === w.id ? " sel" : ""}" data-w="${w.id}" style="${st}" tabindex="0"`, L = esc(w.label);
+  switch (w.type) {
+    case "pb": return `<div ${a} role="button" aria-label="${L} push button">${L}</div>`;
+    case "sw": return `<div ${a} role="switch" aria-checked="false" aria-label="${L} switch">${L}<small data-sw>OFF</small></div>`;
+    case "lamp": { const d = Math.min(w.h, w.w); return `<div ${a} role="img" aria-label="${L} lamp"><span class="lp" style="width:${d}px;height:${d}px"></span><span>${L}</span></div>`; }
+    case "num": return `<div ${a} role="status" aria-label="${L}"><span class="nl">${L}</span><span class="nv"><b data-nv>0</b> ${esc(w.unit)}</span></div>`;
+    case "entry": return `<div ${a} aria-label="${L} number entry"><span class="nl">${L}</span><span class="nv2"><input type="number" data-entry value="${w.value}" min="${w.min}" max="${w.max}" step="${w.step}" aria-label="${L}" ${hmode === "edit" ? "disabled" : ""}> ${esc(w.unit)}</span></div>`;
+    case "label": return `<div ${a.replace('style="', `style="font-size:${clampN(w.h - 8, 12, 32)}px;`)}>${L}</div>`;
+    default: return `<div ${a} role="img" aria-label="${L} trend"><canvas width="${w.w * 2}" height="${w.h * 2}" style="width:${w.w}px;height:${w.h}px"></canvas></div>`;
+  }
+}
+const stage = $("#hm-stage");
+function renderHMI() {
+  stage.className = hmode === "edit" ? "edit" : "";
+  stage.innerHTML = HMI.widgets.map(wHTML).join("") + (HMI.widgets.length ? "" : `<div class="hm-empty">${hmode === "edit" ? "Your HMI screen is empty. Add a button, lamp or number with the buttons above." : "Nothing on the screen yet. Switch to Edit screen to add objects."}</div>`);
+  paintHMI(true);
+}
+function fitHMI() { const wrap = $("#hm-wrap"); hs = clampN(wrap.clientWidth / HW, .3, 1.5); stage.style.transform = `scale(${hs})`; wrap.style.height = Math.round(HH * hs) + "px"; }
+function paintHMI(slow) {
+  stage.querySelectorAll(".hw").forEach(el => { const w = hById(el.dataset.w); if (!w) return;
+    if (hbits.includes(w.type)) { const on = !!hState[w.tag]; el.classList.toggle("act", on); if (w.type === "sw") { const s = el.querySelector("[data-sw]"), t = on ? "ON" : "OFF"; if (s.textContent !== t) s.textContent = t; el.setAttribute("aria-checked", on); } }
+    else if (w.type === "lamp") el.classList.toggle("on", getBool(S, w.tag));
+    else if (w.type === "num") { const b = el.querySelector("[data-nv]"), t = numText(w, getNum(S, w.tag)); if (b && b.textContent !== t) b.textContent = t; }
+    else if (w.type === "trend" && slow) drawTrendEl(el, w); });
+}
+function selectW(id) { hsel = id; stage.querySelectorAll(".hw").forEach(x => x.classList.toggle("sel", x.dataset.w === id)); renderHInsp(); }
+function hmiChanged() { hmiSync(); renderHMI(); renderHInsp(); updateTagList(); validate(); save(); }
+function addW(type) {
+  if (HMI.widgets.length >= 60) { toast("That is the most objects one screen can hold."); return; }
+  const d = HDEF[type], free = (x, y) => !HMI.widgets.some(o => x < o.x + o.w + 10 && x + d.w + 10 > o.x && y < o.y + o.h + 10 && y + d.h + 10 > o.y);
+  let px = 20, py = 20; scan: for (let y = 20; y + d.h <= HH - 10; y += 10) for (let x = 20; x + d.w <= HW - 10; x += 10) if (free(x, y)) { px = x; py = y; break scan; }
+  const w = cleanW({ type, x: px, y: py, w: d.w, h: d.h, label: d.label, color: d.color });
+  if (type === "pb") w.tag = freeHmiTag("HMI_PB"); else if (type === "sw") w.tag = freeHmiTag("HMI_SW"); else if (type === "entry") { w.tag = freeHmiTag("HMI_SP"); w.unit = "s"; w.min = 1; w.max = 60; w.value = 5; }
+  else if (type === "lamp") { const used = new Set(); HMI.widgets.forEach(x => { if (x.type === "lamp") used.add(x.tag); }); w.tag = (IO.outs.find(o => !used.has(o.tag)) || IO.outs[0]).tag; }
+  else if (type === "num") { let a = ""; walk(n => { if (!a && isBlock(n)) a = n.name + (TIMERS.includes(n.type) ? ".ET" : ".CV"); }); w.tag = a; w.unit = a.endsWith(".ET") ? "s" : ""; }
+  else if (type === "trend") { w.tag = IO.outs[0].tag; }
+  HMI.widgets.push(w); hsel = w.id; hmiChanged();
+}
+function delW(id) { HMI.widgets = HMI.widgets.filter(w => w.id !== id); hsel = null; hmiChanged(); }
+function renameHmiTag(oldT, nt) {
+  walk(n => { for (const k of ["tag", "reset", "cd", "a", "b", "ptTag", "pvTag"]) if (n[k] === oldT) n[k] = nt; });
+  HMI.widgets.forEach(w => { if (w.tag === oldT) w.tag = nt; if (w.tag2 === oldT) w.tag2 = nt; });
+  if (oldT in hState) { hState[nt] = hState[oldT]; delete hState[oldT]; }
+  if (S && oldT in S.tags) delete S.tags[oldT]; renderLadder(); renderInsp();
+}
+function renderHInsp() {
+  const box = $("#hm-insp"), w = hget(); if (hmode !== "edit") { box.innerHTML = ""; return; }
+  if (!w) { box.innerHTML = `<p class="hint">Click an object to edit it. Drag to move it, or use the arrow keys. Add objects with the buttons above.</p>`; return; }
+  const tx = (id, lab, v, ex = "") => `<label>${lab}<input type="text" id="${id}" value="${esc(v)}" autocomplete="off" ${ex}></label>`, nm = (id, lab, v, ex = "") => `<label>${lab}<input type="number" id="${id}" value="${v}" ${ex}></label>`;
+  let h = `<h2>${HTYPES[w.type]}</h2><p class="hint">${esc(HHINT[w.type])}</p><div class="fields">` + tx("h-label", "Label", w.label, 'style="width:200px"');
+  if (OWN.includes(w.type)) h += tx("h-tag", w.type === "entry" ? "Number tag name" : "Bit tag name", w.tag);
+  else if (w.type !== "label") h += `<label>${w.type === "trend" ? "Tag 1" : "Tag"}<input type="text" id="h-tag" list="taglist" value="${esc(w.tag)}" autocomplete="off"></label>`;
+  if (w.type === "trend") h += `<label>Tag 2 (optional)<input type="text" id="h-tag2" list="taglist" value="${esc(w.tag2)}" autocomplete="off"></label><label>Window<select id="h-win">${[5, 10, 30].map(s => `<option value="${s}" ${s === w.win ? "selected" : ""}>${s} s</option>`).join("")}</select></label>`;
+  if (["pb", "sw", "lamp", "num", "trend"].includes(w.type)) h += `<label>${w.type === "num" ? "Value colour" : w.type === "trend" ? "Line colour" : "Lit colour"}<select id="h-color">${Object.keys(HCOL).map(k => `<option value="${k}" ${k === w.color ? "selected" : ""}>${k[0].toUpperCase() + k.slice(1)}</option>`).join("")}</select></label>`;
+  if (w.type === "num" || w.type === "entry") h += tx("h-unit", "Unit", w.unit, 'style="width:70px"');
+  if (w.type === "num") h += `<label>Decimals<select id="h-dec">${[[-1, "Auto"], [0, "0"], [1, "1"], [2, "2"]].map(([v, t]) => `<option value="${v}" ${v === w.dec ? "selected" : ""}>${t}</option>`).join("")}</select></label>`;
+  if (w.type === "entry") h += nm("h-min", "Minimum", w.min) + nm("h-max", "Maximum", w.max) + nm("h-step", "Step", w.step, 'step="any"') + nm("h-val", "Start value", w.value, 'step="any"');
+  h += nm("h-x", "X", w.x, 'step="10"') + nm("h-y", "Y", w.y, 'step="10"') + nm("h-w", "Width", w.w, 'step="10"') + nm("h-h", "Height", w.h, 'step="10"') + `</div><div class="rowbtn"><button data-ha="del">Delete object</button></div>`;
+  box.innerHTML = h;
+}
+$("#hm-insp").addEventListener("click", e => { const b = e.target.closest("[data-ha]"); if (b && b.dataset.ha === "del" && hsel) delW(hsel); });
+$("#hm-insp").addEventListener("change", e => {
+  const w = hget(); if (!w) return; const id = e.target.id, v = e.target.value, nv = parseFloat(v);
+  switch (id) {
+    case "h-label": w.label = v.slice(0, 40); break;
+    case "h-tag": if (OWN.includes(w.type)) { const nt = cleanTag(v); if (!nt || nt === w.tag) { e.target.value = w.tag; return; } if ([...IO.ins, ...IO.outs].some(x => x.tag === nt) || HMI.widgets.some(x => x !== w && OWN.includes(x.type) && x.tag === nt)) { toast("The name " + nt + " is already used by an input, output or another HMI object."); e.target.value = w.tag; return; } renameHmiTag(w.tag, nt); e.target.value = nt; } else w.tag = tagDot(v); break;
+    case "h-tag2": w.tag2 = tagDot(v); break; case "h-win": w.win = +v; break; case "h-color": w.color = v; break; case "h-unit": w.unit = v.slice(0, 8); break; case "h-dec": w.dec = +v; break;
+    case "h-min": w.min = Number.isFinite(nv) ? nv : w.min; break; case "h-max": w.max = Number.isFinite(nv) ? nv : w.max; break; case "h-step": w.step = Number.isFinite(nv) && nv > 0 ? nv : w.step; break;
+    case "h-val": w.value = clampN(Number.isFinite(nv) ? nv : w.value, w.min, w.max); e.target.value = w.value; break;
+    case "h-x": w.x = clampN(snap(Number.isFinite(nv) ? nv : w.x), 0, HW - w.w); break; case "h-y": w.y = clampN(snap(Number.isFinite(nv) ? nv : w.y), 0, HH - w.h); break;
+    case "h-w": w.w = clampN(snap(Number.isFinite(nv) ? nv : w.w), 20, HW - w.x); break; case "h-h": w.h = clampN(snap(Number.isFinite(nv) ? nv : w.h), 20, HH - w.y); break;
+    default: return;
+  }
+  hmiSync(); renderHMI(); updateTagList(); validate(); save();
+  if (["h-x", "h-y", "h-w", "h-h"].includes(id)) { const f = { "h-x": w.x, "h-y": w.y, "h-w": w.w, "h-h": w.h }[id]; e.target.value = f; }
+});
+
+/* ---- stage interaction ---- */
+stage.addEventListener("pointerdown", e => {
+  const el = e.target.closest(".hw"), w = el && hById(el.dataset.w);
+  if (hmode === "edit") {
+    if (!w) { if (hsel) { hsel = null; stage.querySelectorAll(".hw.sel").forEach(x => x.classList.remove("sel")); renderHInsp(); } return; }
+    selectW(w.id); hdrag = { id: w.id, sx: e.clientX, sy: e.clientY, ox: w.x, oy: w.y, moved: false }; try { stage.setPointerCapture(e.pointerId); } catch (_) {} return;
+  }
+  if (w && w.type === "pb") { hState[w.tag] = true; hdown = w; try { stage.setPointerCapture(e.pointerId); } catch (_) {} }
+});
+stage.addEventListener("pointermove", e => {
+  if (!hdrag) return; const w = hById(hdrag.id); if (!w) return;
+  const nx = clampN(snap(hdrag.ox + (e.clientX - hdrag.sx) / hs), 0, HW - w.w), ny = clampN(snap(hdrag.oy + (e.clientY - hdrag.sy) / hs), 0, HH - w.h);
+  if (nx !== w.x || ny !== w.y) { hdrag.moved = true; w.x = nx; w.y = ny; const el = stage.querySelector(`[data-w="${w.id}"]`); if (el) { el.style.left = nx + "px"; el.style.top = ny + "px"; } }
+});
+const hup = () => { if (hdrag) { if (hdrag.moved) { renderHInsp(); save(); } hdrag = null; } if (hdown) { hState[hdown.tag] = false; hdown = null; } };
+["pointerup", "pointercancel", "lostpointercapture"].forEach(ev => stage.addEventListener(ev, hup));
+stage.addEventListener("click", e => { if (hmode !== "run") return; const el = e.target.closest(".hw"), w = el && hById(el.dataset.w); if (w && w.type === "sw") hState[w.tag] = !hState[w.tag]; });
+stage.addEventListener("change", e => { const inp = e.target.closest("[data-entry]"); if (!inp || hmode !== "run") return; const w = hById(inp.closest(".hw").dataset.w); if (!w) return; let v = parseFloat(inp.value); if (!Number.isFinite(v)) v = w.value; v = clampN(v, w.min, w.max); w.value = v; inp.value = v; hState[w.tag] = v; save(); });
+stage.addEventListener("keydown", e => {
+  const el = e.target.closest(".hw"); if (!el || e.target.matches("input")) return; const w = hById(el.dataset.w); if (!w) return;
+  if (hmode === "edit") {
+    const d = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key];
+    if (d) { e.preventDefault(); w.x = clampN(w.x + d[0] * GRID, 0, HW - w.w); w.y = clampN(w.y + d[1] * GRID, 0, HH - w.h); el.style.left = w.x + "px"; el.style.top = w.y + "px"; renderHInsp(); save(); }
+    else if (e.key === "Delete" || e.key === "Backspace") { e.preventDefault(); delW(w.id); } else if (e.key === "Enter" || e.key === " ") { e.preventDefault(); selectW(w.id); }
+    return;
+  }
+  if (e.key !== " " && e.key !== "Enter") return;
+  if (w.type === "pb") { e.preventDefault(); hState[w.tag] = true; } else if (w.type === "sw" && !e.repeat) { e.preventDefault(); hState[w.tag] = !hState[w.tag]; }
+});
+stage.addEventListener("keyup", e => { const el = e.target.closest(".hw"), w = el && hById(el.dataset.w); if (w && hmode === "run" && w.type === "pb" && (e.key === " " || e.key === "Enter")) hState[w.tag] = false; });
+
+/* ---- tabs, palette, mode ---- */
+function setTab(t) {
+  tab = t; document.querySelectorAll("#main .lad").forEach(el => el.hidden = t !== "ladder"); $("#p-hmi").hidden = t !== "hmi"; $("#p-pal").hidden = t !== "ladder";
+  document.querySelectorAll(".tabs [data-tab]").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === t));
+  if (t === "hmi") { renderHMI(); renderHInsp(); fitHMI(); } else drawTrace();
+}
+document.querySelector(".tabs").addEventListener("click", e => { const b = e.target.closest("[data-tab]"); if (b) setTab(b.dataset.tab); });
+$("#hm-pal").innerHTML = Object.entries(HTYPES).map(([k, v]) => `<button data-hp="${k}" data-tip="hm-${k}">+ ${v}</button>`).join("");
+$("#hm-pal").addEventListener("click", e => { const b = e.target.closest("[data-hp]"); if (b) addW(b.dataset.hp); });
+$("#hm-mode").addEventListener("click", () => {
+  hmode = hmode === "edit" ? "run" : "edit"; hsel = null; $("#hm-mode").textContent = hmode === "edit" ? "Run screen" : "Edit screen"; $("#hm-pal").hidden = hmode !== "edit";
+  $("#hm-hint").textContent = hmode === "edit" ? "Edit mode: add objects, drag them, and set their tags. Press Run screen to operate it." : "Run mode: press buttons, flip switches and type numbers. The ladder is running behind this screen.";
+  renderHMI(); renderHInsp();
+});
+window.addEventListener("resize", () => { if (tab === "hmi") fitHMI(); });
+
+/* ---- HMI in the JPG ---- */
+function rrect(g, x, y, w, h, r) { g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); }
+function drawHMI(g, ox, oy) {
+  const F = "Arial, Helvetica, sans-serif"; g.save(); g.translate(ox, oy); g.fillStyle = "#0b0d10"; g.fillRect(0, 0, HW, HH); g.strokeStyle = "#fff"; g.lineWidth = 2; g.strokeRect(1, 1, HW - 2, HH - 2); g.textBaseline = "middle";
+  for (const w of HMI.widgets) {
+    const c = HCOL[w.color] || HCOL.green; g.save(); g.translate(w.x, w.y);
+    if (w.type === "pb" || w.type === "sw") { const on = !!hState[w.tag]; rrect(g, 1.5, 1.5, w.w - 3, w.h - 3, 10); g.fillStyle = on ? c : "#1b1f24"; g.fill(); g.strokeStyle = "#fff"; g.lineWidth = 3; g.stroke(); g.fillStyle = on ? "#000" : "#fff"; g.font = "bold 14px " + F; g.textAlign = "center"; g.fillText(w.label, w.w / 2, w.type === "sw" ? w.h / 2 - 8 : w.h / 2); if (w.type === "sw") { g.font = "bold 11px " + F; g.fillText(on ? "ON" : "OFF", w.w / 2, w.h / 2 + 10); } }
+    else if (w.type === "lamp") { const d = Math.min(w.w, w.h), on = getBool(S, w.tag); g.beginPath(); g.arc(d / 2, w.h / 2, d / 2 - 2, 0, 7); g.fillStyle = on ? c : "#1b1f24"; g.fill(); g.strokeStyle = "#fff"; g.lineWidth = 3; g.stroke(); g.fillStyle = "#fff"; g.font = "bold 14px " + F; g.textAlign = "left"; g.fillText(w.label, d + 8, w.h / 2); }
+    else if (w.type === "num" || w.type === "entry") { rrect(g, 1, 1, w.w - 2, w.h - 2, 6); g.fillStyle = "#000"; g.fill(); g.strokeStyle = "#fff"; g.lineWidth = 2; g.stroke(); g.fillStyle = "#fff"; g.font = "600 12px " + F; g.textAlign = "center"; g.fillText(w.label, w.w / 2, 15);
+      const v = w.type === "num" ? getNum(S, w.tag) : (typeof hState[w.tag] === "number" ? hState[w.tag] : w.value); g.fillStyle = w.type === "num" ? c : "#fff"; g.font = "bold 24px Consolas, 'Courier New', monospace"; g.fillText((w.type === "num" ? numText(w, v) : String(v)) + (w.unit ? " " + w.unit : ""), w.w / 2, w.h / 2 + 10); }
+    else if (w.type === "label") { g.fillStyle = "#fff"; g.font = "bold " + clampN(w.h - 8, 12, 32) + "px " + F; g.textAlign = "left"; g.fillText(w.label, 0, w.h / 2); }
+    else if (w.type === "trend") drawTrend(g, 0, 0, w.w, w.h, w);
+    g.restore();
+  }
+  g.restore();
+}
+
 /* ================= boot ================= */
 (function boot() {
-  try { const th = localStorage.getItem(KEY + "-theme"); if (th) { document.documentElement.dataset.theme = th; $("#b-theme").setAttribute("aria-pressed", th === "dark"); $("#b-theme").textContent = th === "dark" ? "Light mode" : "Dark mode"; } } catch (e) {}
-  let d = null; try { d = JSON.parse(localStorage.getItem(KEY)); } catch (e) {}
-  try { if (d) applySnapshot(d); else throw 0; } catch (e) { IO = defaultIO(); style = "micro800"; prog = stamp([{ items: [] }]); resetPLC(); renderIO(); changed(); }
+  try { const th = localStorage.getItem(THEMEKEY); if (th) { document.documentElement.dataset.theme = th; $("#b-theme").setAttribute("aria-pressed", th === "dark"); $("#b-theme").textContent = th === "dark" ? "Light mode" : "Dark mode"; } } catch (e) {}
+  blank();
   requestAnimationFrame(t => { lastT = t; requestAnimationFrame(frame); });
 })();
 (function () { const el = document.getElementById("intro"); if (!el) return; let gone = false;
@@ -801,6 +1164,54 @@ window.addEventListener("resize", () => drawTrace());
   el.addEventListener("click", close); el.addEventListener("keydown", close);
   el.addEventListener("animationend", e => { if (e.target === el && e.animationName === "introOut") { gone = true; el.remove(); } });
   setTimeout(close, 4500); try { el.focus({ preventScroll: true }); } catch (e) {} })();
+
+/* ================= learner profiles (stored on this computer) ================= */
+const TEACHER_CODE = "teach2026"; /* CHANGE THIS to your own teacher code */
+const PROF = "plc-fb-profiles", LEGACY = "plc-freebuild-v1";
+let profs = [], tOK = false, delArm = null;
+function blank() { IO = defaultIO(); style = "micro800"; $("#s-style").value = style; prog = stamp([{ items: [] }]); sel = null; loadHMI([]); resetPLC(); renderIO(); changed(); }
+const hashPin = s => { let h1 = 0xdeadbeef, h2 = 0x41c6ce57; for (let i = 0; i < s.length; i++) { const c = s.charCodeAt(i); h1 = Math.imul(h1 ^ c, 2654435761); h2 = Math.imul(h2 ^ c, 1597334677); } h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909); h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909); return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36); };
+const readProfs = () => { try { const a = JSON.parse(localStorage.getItem(PROF)); return Array.isArray(a) ? a.filter(p => p && p.id && p.name) : []; } catch (e) { return []; } };
+const writeProfs = () => { try { localStorage.setItem(PROF, JSON.stringify(profs)); return true; } catch (e) { return false; } };
+const lg = $("#dlg-login"), lgb = $("#lg-body");
+lg.addEventListener("cancel", e => e.preventDefault());
+const pinOk = v => /^\d{4}$/.test(v);
+function lgShow(view, id) {
+  profs = readProfs(); const p = profs.find(x => x.id === id); let h = "";
+  if (view === "pick") { tOK = false; h = `<h2 id="lg-h">Who is working?</h2>` + (profs.length ? `<p class="hint">Pick your name, then type your PIN.</p><div class="lg-list">${profs.map(x => `<button data-lg="pin" data-id="${x.id}">${esc(x.name)}</button>`).join("")}</div>` : `<p class="hint">No learners on this computer yet. Create your profile to start.</p>`) + `<div class="rowbtn"><button class="primary" data-lg="new">New learner</button><button data-lg="tcode">Teacher</button></div>`; }
+  else if (view === "pin" && p) h = `<h2 id="lg-h">Hello, ${esc(p.name)}</h2><label class="lgf">Your 4-digit PIN<input id="lg-pin" type="password" inputmode="numeric" maxlength="4" autocomplete="off"></label><p class="lg-err" id="lg-err" role="alert"></p><div class="rowbtn"><button class="primary" data-lg="open" data-id="${p.id}">Open my work</button><button data-lg="pick">Back</button></div><p class="hint">Forgot your PIN? Ask your teacher.</p>`;
+  else if (view === "new") h = `<h2 id="lg-h">New learner</h2><label class="lgf">Your name<input id="lg-name" type="text" maxlength="24" autocomplete="off"></label><label class="lgf">Choose a 4-digit PIN<input id="lg-pin" type="password" inputmode="numeric" maxlength="4" autocomplete="off"></label><label class="lgf">Type the PIN again<input id="lg-pin2" type="password" inputmode="numeric" maxlength="4" autocomplete="off"></label><p class="lg-err" id="lg-err" role="alert"></p><div class="rowbtn"><button class="primary" data-lg="create">Create and start</button><button data-lg="pick">Back</button></div>`;
+  else if (view === "tcode") h = `<h2 id="lg-h">Teacher</h2><label class="lgf">Teacher code<input id="lg-code" type="password" autocomplete="off"></label><p class="lg-err" id="lg-err" role="alert"></p><div class="rowbtn"><button class="primary" data-lg="tcheck">Continue</button><button data-lg="pick">Back</button></div>`;
+  else if (view === "tlist") h = `<h2 id="lg-h">Teacher: learners on this computer</h2>` + (profs.length ? profs.map(x => `<div class="lg-row"><b>${esc(x.name)}</b><button data-lg="reset" data-id="${x.id}">Reset PIN</button><button data-lg="del" data-id="${x.id}">${delArm === x.id ? "Click again to delete" : "Delete"}</button></div>`).join("") : `<p class="hint">No learners yet.</p>`) + `<p class="hint">Delete removes that learner's saved work from this computer.</p><div class="rowbtn"><button data-lg="pick">Done</button></div>`;
+  else if (view === "reset" && p) h = `<h2 id="lg-h">New PIN for ${esc(p.name)}</h2><label class="lgf">New 4-digit PIN<input id="lg-pin" type="password" inputmode="numeric" maxlength="4" autocomplete="off"></label><p class="lg-err" id="lg-err" role="alert"></p><div class="rowbtn"><button class="primary" data-lg="doreset" data-id="${p.id}">Save PIN</button><button data-lg="tlist">Back</button></div>`;
+  else return lgShow("pick");
+  lgb.dataset.view = view; lgb.innerHTML = h; if (!lg.open) lg.showModal(); const f = lgb.querySelector("input,button"); if (f) f.focus();
+}
+const lgErr = m => { const e = $("#lg-err"); if (e) e.textContent = m; };
+function enter(p) {
+  uid = p.id; uname = p.name; KEY = "plc-fb-u-" + p.id; let d = null; try { d = JSON.parse(localStorage.getItem(KEY)); } catch (e) {}
+  try { if (d) applySnapshot(d); else throw 0; } catch (e) { blank(); }
+  $("#who").textContent = p.name; $("#who-bar").hidden = false; lg.close(); toast("Welcome, " + p.name);
+}
+lgb.addEventListener("keydown", e => { if (e.key === "Enter" && e.target.matches("input")) { e.preventDefault(); const b = lgb.querySelector("button.primary"); if (b) b.click(); } });
+lgb.addEventListener("click", e => {
+  const b = e.target.closest("[data-lg]"); if (!b) return; const a = b.dataset.lg, id = b.dataset.id, v = s => { const el = $("#" + s); return el ? el.value : ""; };
+  if (a === "pick" || a === "new" || a === "tcode" || a === "pin" || a === "tlist" || a === "reset") { delArm = null; return lgShow(a, id); }
+  if (a === "open") { const p = profs.find(x => x.id === id); if (p && hashPin(p.salt + v("lg-pin")) === p.h) return enter(p); lgErr("That PIN is not right. Try again."); }
+  else if (a === "create") {
+    const name = v("lg-name").trim().replace(/\s+/g, " "), pin = v("lg-pin");
+    if (!name) return lgErr("Type your name."); if (profs.some(x => x.name.toLowerCase() === name.toLowerCase())) return lgErr("That name is already used on this computer. Add an initial or number.");
+    if (!pinOk(pin)) return lgErr("The PIN must be exactly 4 numbers."); if (pin !== v("lg-pin2")) return lgErr("The two PINs do not match.");
+    const salt = Math.random().toString(36).slice(2, 10), p = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name, salt, h: hashPin(salt + pin) };
+    if (!profs.length) { try { const old = localStorage.getItem(LEGACY); if (old) localStorage.setItem("plc-fb-u-" + p.id, old); } catch (x) {} }
+    profs.push(p); if (!writeProfs()) return lgErr("This browser will not save profiles (private window or storage blocked)."); enter(p);
+  }
+  else if (a === "tcheck") { if (v("lg-code") === TEACHER_CODE) { tOK = true; lgShow("tlist"); } else lgErr("That teacher code is not right."); }
+  else if (a === "doreset" && tOK) { const p = profs.find(x => x.id === id), pin = v("lg-pin"); if (!p) return; if (!pinOk(pin)) return lgErr("The PIN must be exactly 4 numbers."); p.salt = Math.random().toString(36).slice(2, 10); p.h = hashPin(p.salt + pin); writeProfs(); lgShow("tlist"); toast("PIN changed for " + p.name + "."); }
+  else if (a === "del" && tOK) { if (delArm !== id) { delArm = id; return lgShow("tlist"); } delArm = null; profs = profs.filter(x => x.id !== id); writeProfs(); try { localStorage.removeItem("plc-fb-u-" + id); localStorage.removeItem("plc-fb-u-" + id + "-name"); } catch (x) {} lgShow("tlist"); }
+});
+$("#b-out").addEventListener("click", () => { save(); uid = null; uname = ""; KEY = LEGACY; blank(); $("#who-bar").hidden = true; lgShow("pick"); });
+(function waitIntro() { if (document.getElementById("intro")) return setTimeout(waitIntro, 100); lgShow("pick"); })();
 </script>
 </body>
 </html>
